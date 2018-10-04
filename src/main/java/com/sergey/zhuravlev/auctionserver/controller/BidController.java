@@ -2,7 +2,7 @@ package com.sergey.zhuravlev.auctionserver.controller;
 
 import com.sergey.zhuravlev.auctionserver.converter.BidConverter;
 import com.sergey.zhuravlev.auctionserver.dto.RequestBidDto;
-import com.sergey.zhuravlev.auctionserver.dto.ResponseBidDot;
+import com.sergey.zhuravlev.auctionserver.dto.ResponseBidDto;
 import com.sergey.zhuravlev.auctionserver.entity.Bid;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
 import com.sergey.zhuravlev.auctionserver.entity.User;
@@ -32,7 +32,7 @@ public class BidController {
 
     @Secured("ROLE_USER")
     @PostMapping(value = "/lots/bid")
-    public ResponseBidDot createBid(@Validated @RequestBody RequestBidDto bidDto, Principal principal) {
+    public ResponseBidDto createBid(@Validated @RequestBody RequestBidDto bidDto, Principal principal) {
         //FIXME test it work ?
         User user = (User) principal;
         Lot lot = lotService.get(bidDto.getLotId());
@@ -40,7 +40,7 @@ public class BidController {
         return BidConverter.toResponse(bid);
     }
 
-    @Secured({"ROLE_USER"})
+    @Secured("ROLE_USER")
     @DeleteMapping(value = "/profile/bids/{id}")
     public void deleteBid(@PathVariable("id") Long id) {
         bidService.delete(id);
