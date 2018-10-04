@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Setter
 @Getter
 @NoArgsConstructor
-public class ResponseBidDot extends BidDto {
+public class ResponseBidDto extends BidDto {
 
     private Long id;
     private ResponseLotDto lot;
