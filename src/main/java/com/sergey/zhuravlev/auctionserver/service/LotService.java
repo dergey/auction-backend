@@ -1,5 +1,8 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
+import com.querydsl.core.types.Predicate;
+import com.sergey.zhuravlev.auctionserver.builder.LotPredicateBuilder;
+import com.sergey.zhuravlev.auctionserver.common.SimplePage;
 import com.sergey.zhuravlev.auctionserver.entity.Category;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
 import com.sergey.zhuravlev.auctionserver.entity.User;
@@ -9,10 +12,12 @@ import com.sergey.zhuravlev.auctionserver.repository.LotRepository;
 import lombok.extern.java.Log;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
@@ -36,41 +41,12 @@ public class LotService {
         this.lotRepository = lotRepository;
     }
 
+    @Transactional
     public Lot get(Long id) {
         Optional<Lot> lot = lotRepository.findById(id);
         if (!lot.isPresent())
             throw new NotFoundException(String.format("Lot with id %s not found", id));
         return lot.get();
-    }
-
-    public List<Lot> getUserLots(Long userId) {
-        return lotRepository.getByOwner_Id(userId);
-    }
-
-    public List<Lot> getByOwnerIDAndStatus(Long ownerID, Status status) {
-        return lotRepository.getByOwnerIdAndStatus(ownerID, status);
-    }
-
-    public List<Lot> getLotsByBuyerId(Long id) {
-        return lotRepository.getLotsByBuyer(id);
-    }
-
-    @Transactional
-    public List getLots(Long categoryID, Long ownerID, String query, Integer offset){
-        String q = "select l from Lot l";
-
-        if (offset == null) offset = 0;
-
-        if (categoryID != null) q = "select l from Lot l where l.category.id =" + categoryID; else
-        if (ownerID != null) q = "select l from Lot l where l.owner.id = " + ownerID; else
-        if (query != null) q = "select l from Lot l where l.title like %" + query + "%";
-
-        SessionFactory sf = entityManagerFactory.unwrap(SessionFactory.class);
-
-        return sf.getCurrentSession().createQuery(q)
-                .setFirstResult(offset)
-                .setMaxResults(5)
-                .list();
     }
 
     @Transactional
@@ -114,16 +90,38 @@ public class LotService {
         watcherExpirationLotsService.unfollowById(id); //todo move to aspect
     }
 
-    public List<Lot> search(String query) {
-        return lotRepository.getLotsByTitleLike(query);
+    @Transactional
+    public Iterable<Lot> getLots(Status status, String titleLike, Long ownerId, Long categoryId,
+                                 Integer pageNumber, Integer pageSize) {
+        Predicate lotPredicate = new LotPredicateBuilder()
+                .withStatus(status)
+                .withTitleLike(titleLike)
+                .withOwnerId(ownerId)
+                .withCategoryId(categoryId)
+                .build();
+        SimplePage page = new SimplePage(pageSize, pageNumber);
+        return lotRepository.findAll(lotPredicate, page);
     }
 
-    public List<Lot> getPurchasedLots(Long id) {
-        return lotRepository.getPurchasedLots(id);
+    @Transactional
+    public Iterable<Lot> getLotsByBuyer(User buyer) {
+        Predicate lotPredicate = new LotPredicateBuilder()
+                .withStatus(Status.SALE)
+                .withBuyer(buyer)
+                .build();
+        return lotRepository.findAll(lotPredicate);
     }
 
-    public List<Lot> getRandom() {
+    @Transactional
+    public Iterable<Lot> getUserPurchasedLots(User user) {
+        Predicate lotPredicate = new LotPredicateBuilder()
+                .withStatus(Status.SOLD)
+                .withBuyer(user)
+                .build();
+        return lotRepository.findAll(lotPredicate);
+    }
+
+    public List<Lot> getRecommendLots() {
         return lotRepository.getRandom(5);
     }
-
 }

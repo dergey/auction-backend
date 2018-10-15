@@ -1,5 +1,7 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
+import com.querydsl.core.types.Predicate;
+import com.sergey.zhuravlev.auctionserver.builder.LotPredicateBuilder;
 import com.sergey.zhuravlev.auctionserver.entity.Bid;
 import com.sergey.zhuravlev.auctionserver.enums.Status;
 import com.sergey.zhuravlev.auctionserver.repository.BidRepository;
@@ -16,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.Optional;
+
 
 @Log
 @Service
@@ -45,9 +49,11 @@ public class WatcherExpirationLotsService {
 
     private Lot foundNearestLot() {
         if (thread.isAlive()) thread.interrupt();
-        Lot lot = lotRepository.getNearestExpirationDate();
-        if (lot == null) throw new RuntimeException("Not found nearest lots");
-        return lot;
+        Predicate lotPredicate = new LotPredicateBuilder().withNearestExpirationDate().build();
+        Optional<Lot> lotOptional = lotRepository.findOne(lotPredicate);
+        if (!lotOptional.isPresent())
+            throw new RuntimeException("Not found nearest lots");
+        return lotOptional.get();
     }
 
     private void doFollowing(Lot lot) {

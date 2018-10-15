@@ -48,15 +48,6 @@ public class LotController {
         return lotDto;
     }
 
-//    @GetMapping(value = "/lots")
-//    @ResponseStatus(HttpStatus.FOUND)
-//    public List<ResponseLotDto> findLots(@RequestParam(value = "category", required = false) Long categoryID,
-//                              @RequestParam(value = "owner", required = false) Long ownerID,
-//                              @RequestParam(value = "search", required = false) String query,
-//                              @RequestParam(value = "offset", required = false) Integer offset){
-//        return lotService.getLots(categoryID, ownerID, query, offset);
-//    }
-
     @Secured({"ROLE_USER"})
     @PostMapping(value = "/lots")
     @ResponseStatus(HttpStatus.CREATED)
@@ -84,45 +75,48 @@ public class LotController {
         lotService.delete(id);
     }
 
-    @Secured({"ROLE_USER"})
-    @GetMapping(value = "/profile/bids")
-    public List<Lot> findLotsFromBidsBuyer() {
-        User user = SecurityService.getAuthenticationUser();
-        return lotService.getLotsByBuyerId(user.getId());
+    @GetMapping(value = "/lots/search")
+    public List<ResponseLotDto> getLots(
+            @RequestParam(value = "category", required = false) Long categoryID,
+            @RequestParam(value = "owner", required = false) Long ownerID,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "page-size", required = false) Integer pageSize) {
+        return LotConverter.toResponseCollection(lotService.getLots(Status.SALE, title, ownerID, categoryID, page, pageSize));
     }
 
     @Secured({"ROLE_USER"})
-    @GetMapping(value = "/profile/sold")
-    public List<Lot> findSoldLots() {
+    @GetMapping(value = "/profile/bids")
+    public List<ResponseLotDto> getLotsWhichPlaceBid() {
         User user = SecurityService.getAuthenticationUser();
-        return lotService.getByOwnerIDAndStatus(user.getId(), Status.SOLD);
+        return LotConverter.toResponseCollection(lotService.getLotsByBuyer(user));
+    }
+
+    @Secured({"ROLE_USER"})
+    @GetMapping(value = "/profile/lots")
+    public Iterable<Lot> getMyLots(
+            @RequestParam(value = "status", required = false) Integer status,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "page-size", required = false) Integer pageSize) {
+        User user = SecurityService.getAuthenticationUser();
+        return lotService.getLots(Status.values()[status], null, user.getId(), null, page, pageSize);
     }
 
     @Secured({"ROLE_USER"})
     @GetMapping(value = "/profile/purchased")
-    public List<Lot> findPurchasedLots() {
+    public List<ResponseLotDto> getPurchasedLots() {
         User user = SecurityService.getAuthenticationUser();
-        return lotService.getPurchasedLots(user.getId());
+        return LotConverter.toResponseCollection(lotService.getUserPurchasedLots(user));
+    }
+
+    @GetMapping(value = "/profile/recommend")
+    public List<Lot> getRecommendLots() {
+        return lotService.getRecommendLots();
     }
 
     @GetMapping(value = "/categories")
     public List<Category> getAllCategories(){
         return categoryRepository.findAll();
-    }
-
-
-    @GetMapping(value = "/profile/recommend")
-    public List<Lot> findRecommendLots() {
-        //TODO move to service layer
-        return lotService.getRandom();
-    }
-
-    @Secured({"ROLE_USER"})
-    @GetMapping(value = "/profile/lots")
-    public Collection<ResponseLotDto> getMyLots(){
-        User user = SecurityService.getAuthenticationUser();
-        List<Lot> lots = lotService.getUserLots(user.getId());
-        return LotConverter.toResponseCollection(lots);
     }
 
 }

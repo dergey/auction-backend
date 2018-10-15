@@ -5,6 +5,7 @@ import com.sergey.zhuravlev.auctionserver.entity.Lot;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class LotConverter {
 
@@ -23,8 +24,8 @@ public class LotConverter {
         return lotDto;
     }
 
-    public static Collection<ResponseLotDto> toResponseCollection(Collection<Lot> lots) {
-        Collection <ResponseLotDto> result = new ArrayList<>();
+    public static List<ResponseLotDto> toResponseCollection(Iterable<Lot> lots) {
+        List <ResponseLotDto> result = new ArrayList<>();
         for (Lot lot : lots) {
             result.add(toResponse(lot));
         }
