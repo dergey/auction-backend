@@ -39,7 +39,7 @@ public class UserService {
         Set<Role> roles = Collections.singleton(userRole);
         String password = passwordEncoder.encode(rawPassword);
         User user = new User(null, username, password, roles, firstname, lastname,
-                email, (byte) 0, history, null);
+                email, (byte) 0, history);
         userRepository.save(user);
         return user;
     }
@@ -68,9 +68,4 @@ public class UserService {
         return user;
     }
 
-    @Transactional
-    public void updateNotificationKey(User user, String token) {
-        user.setNotificationToken(token);
-        userRepository.save(user);
-    }
 }

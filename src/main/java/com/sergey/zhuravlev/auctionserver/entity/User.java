@@ -39,7 +39,5 @@ public class User {
     private Byte rating;
     @Column(name = "history")
     private String history;
-    @Column(name = "notification_token")
-    private String notificationToken;
 
 }

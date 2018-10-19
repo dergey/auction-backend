@@ -3,14 +3,11 @@ package com.sergey.zhuravlev.auctionserver.service;
 import com.querydsl.core.types.Predicate;
 import com.sergey.zhuravlev.auctionserver.builder.LotPredicateBuilder;
 import com.sergey.zhuravlev.auctionserver.entity.Bid;
+import com.sergey.zhuravlev.auctionserver.enums.NotificationType;
 import com.sergey.zhuravlev.auctionserver.enums.Status;
 import com.sergey.zhuravlev.auctionserver.repository.BidRepository;
 import com.sergey.zhuravlev.auctionserver.repository.LotRepository;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
-import com.sergey.zhuravlev.auctionserver.service.notification.NotificationService;
-import com.sergey.zhuravlev.auctionserver.service.notification.type.NotificationLotExpired;
-import com.sergey.zhuravlev.auctionserver.service.notification.type.NotificationLotPurchased;
-import com.sergey.zhuravlev.auctionserver.service.notification.type.NotificationLotSold;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -90,17 +87,29 @@ public class WatcherExpirationLotsService {
                 Thread.sleep(nearestLot.getExpirationDate().getTime() - System.currentTimeMillis());
                 Bid bid = bidRepository.getBetByLotIdAndMaxSize(nearestLot.getId());
                 if (bid != null) {
-                    // Уведомление покупателю
-                    notificationService.send(new NotificationLotPurchased(bid.getBuyer(), nearestLot));
-                    // Уведомление продавцу
-                    notificationService.send(new NotificationLotSold(nearestLot));
                     nearestLot.setStatus(Status.SOLD);
                     bidRepository.deleteAllBetsInLots(nearestLot.getId());
+                    // Уведомление покупателю
+                    notificationService.createNotification(
+                            NotificationType.LOT_PURCHASED,
+                            "TitleLotPurchased",
+                            "BodyLotPurchased",
+                            bid.getBuyer());
+                    // Уведомление продавцу
+                    notificationService.createNotification(
+                            NotificationType.LOT_SOLD,
+                            "TitleLotSold",
+                            "BodyLotSold",
+                            nearestLot.getOwner());
                 } else {
                     //Уведомление продавцу
                     nearestLot.setStatus(Status.UNSOLD);
                     lotRepository.saveAndFlush(nearestLot);
-                    notificationService.send(new NotificationLotExpired(nearestLot));
+                    notificationService.createNotification(
+                            NotificationType.LOT_EXPIRED,
+                            "TitleLotExpired",
+                            "BodyLotExpired",
+                            nearestLot.getOwner());
                     log.info("Lot " + nearestLot.getTitle() + " not sold");
                 }
                 lotRepository.save(nearestLot);

@@ -50,16 +50,6 @@ public class UserController {
     }
 
     @Secured({"ROLE_USER"})
-    @PostMapping(value = "/profile/token")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void registrationNotificationKey(@RequestBody String token) {
-        if (!token.isEmpty()) {
-            User user = SecurityService.getAuthenticationUser();
-            userService.updateNotificationKey(user, token);
-        }
-    }
-
-    @Secured({"ROLE_USER"})
     @DeleteMapping(value = "/profile/token")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unregisterNotificationKey() {
