@@ -43,8 +43,7 @@ public class LotPredicateBuilder {
 
     public LotPredicateBuilder withTitleLike(String titleLike) {
         if (titleLike != null) {
-            //TODO may be not work
-            builder.and(lotQuery.title.like(titleLike));
+            builder.and(lotQuery.title.like("%" + titleLike + "%"));
         }
         return this;
     }
