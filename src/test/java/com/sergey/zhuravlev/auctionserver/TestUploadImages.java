@@ -1,11 +1,10 @@
 package com.sergey.zhuravlev.auctionserver;
 
-import com.sergey.zhuravlev.auctionserver.service.ImageStorageService;
+import com.sergey.zhuravlev.auctionserver.entity.Image;
+import com.sergey.zhuravlev.auctionserver.service.ImageService;
 import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,15 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
@@ -46,7 +40,7 @@ public class TestUploadImages {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private ImageStorageService storageService;
+    private ImageService storageService;
 
     @Value("${images.directory}")
     private String directory;
@@ -67,15 +61,15 @@ public class TestUploadImages {
     }
 
     @Test
-    public void shouldDownloadFile() throws IOException, NoSuchAlgorithmException {
+    public void shouldDownloadFile() throws IOException {
         ClassPathResource resource = new ClassPathResource("test2.jpg", getClass());
         File file = new File(resource.getURI());
         FileInputStream input = new FileInputStream(file);
         MultipartFile multipartFile = new MockMultipartFile("file.jpg",
                 file.getName(), "image/jpg", IOUtils.toByteArray(input));
-        String gottenFilename = storageService.save(multipartFile);
+        Image image = storageService.save(multipartFile);
         ResponseEntity<Void> response = this.restTemplate
-                .getForEntity("/images/{filename}", Void.class, gottenFilename);
+                .getForEntity("/images/{filename}", Void.class, image.getName());
         assertEquals(response.getStatusCodeValue(), 200);
     }
 

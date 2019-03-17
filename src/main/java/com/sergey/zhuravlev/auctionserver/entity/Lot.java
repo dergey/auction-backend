@@ -1,16 +1,18 @@
 package com.sergey.zhuravlev.auctionserver.entity;
 
-import com.sergey.zhuravlev.auctionserver.enums.Status;
+import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
 import lombok.*;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Currency;
+import java.util.Date;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @Entity
 @Table(name = "lots")
 public class Lot {
@@ -18,27 +20,47 @@ public class Lot {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(name = "title", nullable = false)
+
+    @Column(name = "title", length = 50, nullable = false)
     private String title;
-    @Column(name = "description")
+
+    @Column(name = "description", length = 250)
     private String description;
-    @Column(name = "image")
-    private String image;
-    @Column(name = "expiration_date", nullable = false)
-    private Date expirationDate;
-    @Column(name = "starting_price", nullable = false)
-    private Double startingPrice;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Collection<Image> images;
+
+    @Column(name = "create_at", nullable = false)
+    private Date createAt;
+
+    @Column(name = "update_at", nullable = false)
+    private Date updateAt;
+
+    @Column(name = "complete_at")
+    private Date completeAt;
+
+    @Column(name = "expires_at", nullable = false)
+    private Date expiresAt;
+
+    @Column(name = "starting_amount", nullable = false)
+    private BigDecimal startingAmount;
+
+    @Column(name = "currency", nullable = false, length = 3)
+    private Currency currency;
+
     @Column(name = "auction_step", nullable = false)
-    private Double auctionStep;
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.ORDINAL)
-    private Status status;
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REMOVE})
+    private Long auctionStep;
+
+    @Column(name = "status", length = 10, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private LotStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
 }
-

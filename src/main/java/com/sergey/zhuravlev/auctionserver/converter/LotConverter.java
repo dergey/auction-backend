@@ -1,35 +1,30 @@
 package com.sergey.zhuravlev.auctionserver.converter;
 
 import com.sergey.zhuravlev.auctionserver.dto.ResponseLotDto;
+import com.sergey.zhuravlev.auctionserver.entity.Image;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.stream.Collectors;
 
 public class LotConverter {
 
-    public static ResponseLotDto toResponse(Lot lot) {
+    public static ResponseLotDto convert(Lot lot) {
+        if (lot == null) return null;
         ResponseLotDto lotDto = new ResponseLotDto();
         lotDto.setId(lot.getId());
         lotDto.setTitle(lot.getTitle());
-        lotDto.setStartingPrice(lot.getStartingPrice());
-        lotDto.setImage(lot.getImage());
-        lotDto.setExpirationDate(lot.getExpirationDate());
         lotDto.setDescription(lot.getDescription());
-        lotDto.setCategory(lot.getCategory());
+        lotDto.setImages(lot.getImages().stream().map(Image::getName).collect(Collectors.toList()));
+        lotDto.setCreateAt(lot.getCreateAt());
+        lotDto.setUpdateAt(lot.getUpdateAt());
+        lotDto.setExpiresAt(lot.getExpiresAt());
+        lotDto.setStartingAmount(lot.getStartingAmount());
+        lotDto.setCurrencyCode(lot.getCurrency().getCurrencyCode());
         lotDto.setAuctionStep(lot.getAuctionStep());
         lotDto.setStatus(lot.getStatus());
-        lotDto.setOwner(lot.getOwner());
+        lotDto.setOwnerId(lot.getOwner().getId());
+        lotDto.setCategoryId(lot.getCategory().getId());
         return lotDto;
-    }
-
-    public static List<ResponseLotDto> toResponseCollection(Iterable<Lot> lots) {
-        List <ResponseLotDto> result = new ArrayList<>();
-        for (Lot lot : lots) {
-            result.add(toResponse(lot));
-        }
-        return result;
     }
 
 }

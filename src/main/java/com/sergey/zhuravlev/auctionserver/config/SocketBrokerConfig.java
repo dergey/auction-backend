@@ -19,19 +19,20 @@ public class SocketBrokerConfig extends AbstractSecurityWebSocketMessageBrokerCo
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         messages
-                .simpDestMatchers(SECURED_CHAT_SPECIFIC_USER).authenticated()
+                .simpDestMatchers("/notification", "/profile/notification").authenticated()
                 .anyMessage().authenticated();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker(SECURED_CHAT_SPECIFIC_USER);
+        config.enableSimpleBroker("/users/queue/specific-user");
         config.setUserDestinationPrefix("/users");
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/secured/room").withSockJS();
     }
 
 }

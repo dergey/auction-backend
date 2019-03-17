@@ -2,17 +2,13 @@ package com.sergey.zhuravlev.auctionserver.service;
 
 import com.querydsl.core.types.Predicate;
 import com.sergey.zhuravlev.auctionserver.builder.LotPredicateBuilder;
-import com.sergey.zhuravlev.auctionserver.entity.Bid;
-import com.sergey.zhuravlev.auctionserver.enums.NotificationType;
-import com.sergey.zhuravlev.auctionserver.enums.Status;
-import com.sergey.zhuravlev.auctionserver.repository.BidRepository;
-import com.sergey.zhuravlev.auctionserver.repository.LotRepository;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
+import com.sergey.zhuravlev.auctionserver.repository.LotRepository;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.Optional;
@@ -20,25 +16,18 @@ import java.util.Optional;
 
 @Log
 @Service
+@RequiredArgsConstructor
 public class WatcherExpirationLotsService {
 
+    private final LotService lotService;
     private final LotRepository lotRepository;
-    private final BidRepository bidRepository;
-    private final NotificationService notificationService;
-    private LotsThread thread;
 
-    @Autowired
-    public WatcherExpirationLotsService(LotRepository lotRepository, BidRepository bidRepository, NotificationService notificationService) {
-        this.lotRepository = lotRepository;
-        this.bidRepository = bidRepository;
-        this.notificationService = notificationService;
-    }
+    private LotsThread thread;
 
     @PostConstruct
     private void init(){
-        thread = new LotsThread();
         try {
-            doFollowing(foundNearestLot());
+            followImpl(foundNearestLot());
         } catch (RuntimeException e) {
             log.info(String.format("Unable to start tracking nearest lot. %s", e));
         }
@@ -53,75 +42,49 @@ public class WatcherExpirationLotsService {
         return lotOptional.get();
     }
 
-    private void doFollowing(Lot lot) {
+    private void followImpl(Lot lot) {
         thread.interrupt();
-        thread = new LotsThread();
-        thread.setNearestLot(lot);
+        thread = new LotsThread(lot);
         thread.start();
     }
 
+    @Transactional
     public void follow(Lot lot) {
         if (thread.nearestLotIsNull() ||
-                lot.getExpirationDate().getTime() < thread.getNearestLotTime()) {
-            this.doFollowing(lot);
+                lot.getExpiresAt().getTime() < thread.getNearestLotTime()) {
+            this.followImpl(lot);
         }
     }
 
     public void unfollowById(Long id) {
         if (thread.getNearestLot().getId().equals(id)) {
-            doFollowing(foundNearestLot());
+            followImpl(foundNearestLot());
         }
     }
 
     @Getter
-    @Setter
+    @RequiredArgsConstructor
     class LotsThread extends Thread {
 
-        private Lot nearestLot;
+        private final Lot nearestLot;
 
         @Override
         public void run() {
+            Long sleepTime = nearestLot.getExpiresAt().getTime() - System.currentTimeMillis();
             log.info("Thread " + getName() + " started, nearest lot [" + nearestLot.getId() + "] " + nearestLot.getTitle() + ", expires at "
-                    + getHoursMinute(nearestLot.getExpirationDate().getTime() - System.currentTimeMillis()));
+                    + formatMillisToHoursMinute(sleepTime));
             try {
-                Thread.sleep(nearestLot.getExpirationDate().getTime() - System.currentTimeMillis());
-                Bid bid = bidRepository.getBetByLotIdAndMaxSize(nearestLot.getId());
-                if (bid != null) {
-                    nearestLot.setStatus(Status.SOLD);
-                    bidRepository.deleteAllBetsInLots(nearestLot.getId());
-                    // Уведомление покупателю
-                    notificationService.createNotification(
-                            NotificationType.LOT_PURCHASED,
-                            "TitleLotPurchased",
-                            "BodyLotPurchased",
-                            bid.getBuyer());
-                    // Уведомление продавцу
-                    notificationService.createNotification(
-                            NotificationType.LOT_SOLD,
-                            "TitleLotSold",
-                            "BodyLotSold",
-                            nearestLot.getOwner());
-                } else {
-                    //Уведомление продавцу
-                    nearestLot.setStatus(Status.UNSOLD);
-                    lotRepository.saveAndFlush(nearestLot);
-                    notificationService.createNotification(
-                            NotificationType.LOT_EXPIRED,
-                            "TitleLotExpired",
-                            "BodyLotExpired",
-                            nearestLot.getOwner());
-                    log.info("Lot " + nearestLot.getTitle() + " not sold");
-                }
-                lotRepository.save(nearestLot);
+                Thread.sleep(nearestLot.getExpiresAt().getTime() - System.currentTimeMillis());
+                lotService.completeLot(nearestLot);
             } catch (InterruptedException ignored) {
                 log.info("Thread stopped.");
             }
             log.info("Thread destroyed.");
         }
 
-        private String getHoursMinute(Long millis) {
-            int minute = Math.round(millis / 60000);
-            int hours = Math.round(minute / 60);
+        private String formatMillisToHoursMinute(Long millis) {
+            int minute = (int) (millis / 60000);
+            int hours = minute / 60;
             minute = minute - hours * 60;
             return String.format("%s h. %s m.", hours, minute);
         }
@@ -131,7 +94,7 @@ public class WatcherExpirationLotsService {
         }
 
         Long getNearestLotTime() {
-            return nearestLot.getExpirationDate().getTime();
+            return nearestLot.getExpiresAt().getTime();
         }
 
     }

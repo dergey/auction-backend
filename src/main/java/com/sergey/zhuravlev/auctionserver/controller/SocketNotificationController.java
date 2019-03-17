@@ -26,10 +26,10 @@ public class SocketNotificationController {
         this.notificationService = notificationService;
     }
 
-    @MessageMapping(SECURED_CHAT_ROOM)
+    @MessageMapping("/api/notification")
     public void sendSpecific(@Payload RequestNotification request, Principal user, @Header("simpSessionId") String sessionId) {
         List<Notification> out = notificationService.getNotificationForUser(user, request.getLastReadMessage());
-        template.convertAndSendToUser(user, SECURED_CHAT_SPECIFIC_USER, out);
+        template.convertAndSendToUser(user.getName(), "/profile/notification", out);
     }
 
 }
