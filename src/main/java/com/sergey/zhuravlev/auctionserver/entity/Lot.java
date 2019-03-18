@@ -27,7 +27,7 @@ public class Lot {
     @Column(name = "description", length = 250)
     private String description;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Collection<Image> images;
 
     @Column(name = "create_at", nullable = false)
@@ -55,12 +55,12 @@ public class Lot {
     @Enumerated(EnumType.STRING)
     private LotStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "category_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "category_id")
     private Category category;
 
 }

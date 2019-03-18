@@ -12,7 +12,9 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "images")
+@Table(name = "images", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_image_name", columnNames = "name")
+})
 public class Image {
 
     @Id
@@ -25,7 +27,7 @@ public class Image {
     @Column(name = "filename", length = 50)
     private String filename;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "owner_id")
     private User owner;
 
