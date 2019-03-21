@@ -14,12 +14,12 @@ import java.util.Date;
 public class Feedback {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id", nullable = false)
-    private User review;
+    @JoinColumn(name = "review_user_id", nullable = false)
+    private LocalUser review;
 
     @Column(name = "short_text", length = 80, nullable = false)
     private String shortText;
@@ -33,8 +33,8 @@ public class Feedback {
     //private Collection<Image> image;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @JoinColumn(name = "author_user_id", nullable = false)
+    private LocalUser author;
 
     @Column(name = "create_at", nullable = false)
     private Date createAt;

@@ -6,22 +6,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponseUserDto {
+public class AccountRequestDto {
 
+    @NotBlank
     @JsonProperty(value = "username")
     private String username;
+
     @JsonProperty(value = "photo")
-    private String photo;
+    private String photoId;
+
     @JsonProperty(value = "firstname")
     private String firstname;
+
     @JsonProperty(value = "lastname")
     private String lastname;
-    @JsonProperty(value = "stars")
-    private Byte stars;
+
     @JsonProperty(value = "bio")
     private String bio;
 

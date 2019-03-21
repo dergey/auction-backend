@@ -3,18 +3,16 @@ package com.sergey.zhuravlev.auctionserver.controller;
 import com.sergey.zhuravlev.auctionserver.converter.LotConverter;
 import com.sergey.zhuravlev.auctionserver.dto.RequestLotDto;
 import com.sergey.zhuravlev.auctionserver.dto.ResponseLotDto;
+import com.sergey.zhuravlev.auctionserver.entity.Account;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
-import com.sergey.zhuravlev.auctionserver.entity.User;
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
+import com.sergey.zhuravlev.auctionserver.faucet.SecurityFaucet;
 import com.sergey.zhuravlev.auctionserver.service.LotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -24,8 +22,8 @@ import java.util.stream.Collectors;
 public class LotController {
 
     private final LotService lotService;
+    private final SecurityFaucet securityFaucet;
 
-    //TODO added PageDto
     @GetMapping
     public Collection<ResponseLotDto> list(
             @RequestParam(value = "category", required = false) Long categoryID,
@@ -44,40 +42,30 @@ public class LotController {
         return LotConverter.convert(lot);
     }
 
-    @Secured({"ROLE_USER"})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseLotDto createLot(@Validated @RequestBody RequestLotDto lotDto,
-                                    Principal principal) {
-        User user = getAuthenticationUser(principal);
-        Lot lot = lotService.createLot(lotDto, user);
+    public ResponseLotDto createLot(@Validated @RequestBody RequestLotDto lotDto) {
+        Account account = securityFaucet.getCurrentAccount();
+        Lot lot = lotService.createLot(lotDto, account);
         return LotConverter.convert(lot);
     }
 
-    @Secured({"ROLE_USER"})
     @PostMapping("{lot_id}")
     public ResponseLotDto updateLot(@PathVariable("lot_id") Long lotId,
-                                    @Validated @RequestBody RequestLotDto lotDto,
-                                    Principal principal) {
-        User user = getAuthenticationUser(principal);
+                                    @Validated @RequestBody RequestLotDto lotDto) {
+        Account account = securityFaucet.getCurrentAccount();
         Lot lot = lotService.getLot(lotId);
-        lot = lotService.updateLot(lot, lotDto, user);
+        lot = lotService.updateLot(lot, account, lotDto);
         return LotConverter.convert(lot);
     }
 
-    @Secured({"ROLE_USER"})
     @PostMapping(value = "{lot_id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseLotDto cancelLot(@PathVariable("lot_id") Long lotId, Principal principal) {
-        User user = getAuthenticationUser(principal);
+    public ResponseLotDto cancelLot(@PathVariable("lot_id") Long lotId) {
+        Account account = securityFaucet.getCurrentAccount();
         Lot lot = lotService.getLot(lotId);
-        lot = lotService.cancelLot(lot, user);
+        lot = lotService.cancelLot(lot, account);
         return LotConverter.convert(lot);
-    }
-
-    private User getAuthenticationUser(Principal rawPrincipal) {
-        UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) rawPrincipal;
-        return (User) token.getPrincipal();
     }
 
 }

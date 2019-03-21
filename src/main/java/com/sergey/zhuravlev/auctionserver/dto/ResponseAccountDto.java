@@ -10,16 +10,23 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RequestUserDto {
+public class ResponseAccountDto {
 
-    @JsonProperty(value = "username")
+    @JsonProperty(value = "email")
     private String username;
-    @JsonProperty(value = "password")
-    private String password;
+
+    @JsonProperty(value = "photo")
+    private String photo;
+
     @JsonProperty(value = "firstname")
     private String firstname;
+
     @JsonProperty(value = "lastname")
     private String lastname;
+
+    @JsonProperty(value = "stars")
+    private Double stars;
+
     @JsonProperty(value = "bio")
     private String bio;
 

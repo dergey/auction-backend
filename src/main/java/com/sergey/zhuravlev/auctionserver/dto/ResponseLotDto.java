@@ -1,7 +1,6 @@
 package com.sergey.zhuravlev.auctionserver.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sergey.zhuravlev.auctionserver.entity.User;
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

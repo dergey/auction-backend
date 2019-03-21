@@ -2,17 +2,14 @@ package com.sergey.zhuravlev.auctionserver.controller;
 
 import com.sergey.zhuravlev.auctionserver.dto.socket.RequestNotification;
 import com.sergey.zhuravlev.auctionserver.service.NotificationService;
-import com.sergey.zhuravlev.auctionserver.entity.Notification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
-import java.util.List;
 
 @Controller
 public class SocketNotificationController {
@@ -27,9 +24,9 @@ public class SocketNotificationController {
     }
 
     @MessageMapping("/api/notification")
-    public void sendSpecific(@Payload RequestNotification request, Principal user, @Header("simpSessionId") String sessionId) {
-        List<Notification> out = notificationService.getNotificationForUser(user, request.getLastReadMessage());
-        template.convertAndSendToUser(user.getName(), "/profile/notification", out);
+    public void sendSpecific(@Payload RequestNotification request, Principal principal) {
+//        List<Notification> out = notificationService.getNotificationForUser(principal.get);
+//        template.convertAndSendToUser(user.getName(), "/profile/notification", out);
     }
 
 }

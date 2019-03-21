@@ -17,7 +17,7 @@ import java.util.Date;
 public class Bid {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "create_at", nullable = false)
@@ -38,7 +38,7 @@ public class Bid {
     private Lot lot;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
+    @JoinColumn(name = "owner_account_id", nullable = false)
+    private Account owner;
 
 }

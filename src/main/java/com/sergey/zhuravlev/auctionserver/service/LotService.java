@@ -6,7 +6,7 @@ import com.sergey.zhuravlev.auctionserver.dto.RequestLotDto;
 import com.sergey.zhuravlev.auctionserver.entity.*;
 import com.sergey.zhuravlev.auctionserver.enums.BidStatus;
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
-import com.sergey.zhuravlev.auctionserver.enums.NotificationType;
+import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
 import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.exception.SecurityException;
 import com.sergey.zhuravlev.auctionserver.repository.BidRepository;
@@ -56,7 +56,7 @@ public class LotService {
     }
 
     @Transactional
-    public Lot createLot(RequestLotDto lotDto, User user) {
+    public Lot createLot(RequestLotDto lotDto, Account account) {
         Date now = new Date();
         Optional<Category> categoryOptional = categoryRepository.findById(lotDto.getCategoryId());
         if (!categoryOptional.isPresent()) throw new NotFoundException(String.format("Category with id %s not found", lotDto.getCategoryId()));
@@ -74,25 +74,25 @@ public class LotService {
                 lotDto.getStartingAmount(),
                 Currency.getInstance(lotDto.getCurrencyCode()),
                 lotDto.getAuctionStep(),
+                null,
                 LotStatus.ACTIVE,
-                user,
+                account,
                 categoryOptional.get());
         lotRepository.save(lot);
         return lot;
     }
 
     @Transactional
-    public Lot updateLot(Lot lot, RequestLotDto lotDto, User user) {
+    public Lot updateLot(Lot lot, Account account, RequestLotDto lotDto) {
         Date now = new Date();
-        //TODO move Before
-        if (!lot.getOwner().getId().equals(user.getId())) throw new SecurityException("Insufficient permissions to update");
-        lot = lotRepository.getLotById(lot.getId());
+        lot = lotRepository.findByIdAndOwner(lot.getId(), account).orElseThrow(() -> new NotFoundException("Lot not found"));
         //Обновлятся могут только отмененые и не проданые!
         if (lotDto.getExpiresAt().equals(lot.getExpiresAt()) ||
-                lotDto.getExpiresAt().after(lot.getExpiresAt())) throw new RuntimeException("Not possible update expires date");
-        if (lotDto.getExpiresAt().before(now)) throw new RuntimeException("Expires date will be after create date");
-        Optional<Category> categoryOptional = categoryRepository.findById(lotDto.getCategoryId());
-        if (!categoryOptional.isPresent()) throw new NotFoundException(String.format("Category with id %s not found", lotDto.getCategoryId()));
+                lotDto.getExpiresAt().after(lot.getExpiresAt())) throw new BadRequestException("Not possible update expires date");
+        if (lotDto.getExpiresAt().before(now)) throw new BadRequestException("Expires date will be after create date");
+        Category category = categoryRepository
+                .findById(lotDto.getCategoryId())
+                .orElseThrow(() -> new NotFoundException(String.format("Category with id %s not found", lotDto.getCategoryId())));
         Collection<Image> images = imageRepository.findAllByNameIn(lotDto.getImages());
         lot.setTitle(lotDto.getTitle());
         lot.setDescription(lotDto.getDescription());
@@ -104,16 +104,15 @@ public class LotService {
         lot.setAuctionStep(lotDto.getAuctionStep());
         lot.setStatus(LotStatus.ACTIVE);
         lot.setCurrency(Currency.getInstance(lotDto.getCurrencyCode()));
-        lot.setCategory(categoryOptional.get());
+        lot.setCategory(category);
         return lot;
     }
 
     @Transactional
-    public Lot cancelLot(Lot lot, User user) {
+    public Lot cancelLot(Lot lot, Account account) {
         Date now = new Date();
-        if (!lot.getOwner().getId().equals(user.getId())) throw new SecurityException("Insufficient permissions to update");
-        lot = lotRepository.getLotById(lot.getId());
-        if (lot.getStatus() != LotStatus.ACTIVE) throw new RuntimeException("Possible to cancel only active lots");
+        lot = lotRepository.findByIdAndOwner(lot.getId(), account).orElseThrow(() -> new NotFoundException("Lot not found"));
+        if (lot.getStatus() != LotStatus.ACTIVE) throw new BadRequestException("Possible to cancel only active lots");
         lot.setStatus(LotStatus.CANCELED);
         lot.setUpdateAt(now);
         return lot;
@@ -121,33 +120,21 @@ public class LotService {
 
     @Transactional
     public Lot completeLot(Lot lot) {
-        Bid bid = bidRepository.getBidByLotIdAndMaxSize(lot.getId());
+        lot = lotRepository.findById(lot.getId()).orElseThrow(() -> new RuntimeException("Can't complete lot! Not found!"));
+        Date now = new Date();
+        Bid bid = lot.getCurrentBid();
         if (bid != null) {
             lot.setStatus(LotStatus.SOLD);
-            //bidRepository.deleteAllBetsInLots(lot.getId());
-            // Уведомление покупателю
-            notificationService.createNotification(
-                    NotificationType.LOT_PURCHASED,
-                    "TitleLotPurchased",
-                    "BodyLotPurchased",
-                    bid.getOwner());
-            // Уведомление продавцу
-            notificationService.createNotification(
-                    NotificationType.LOT_SOLD,
-                    "TitleLotSold",
-                    "BodyLotSold",
-                    lot.getOwner());
+            notificationService.createNotificationLotPurchased(lot);
+            notificationService.createNotificationLotSold(lot);
         } else {
-            //Уведомление продавцу
             lot.setStatus(LotStatus.UNSOLD);
             lotRepository.save(lot);
-            notificationService.createNotification(
-                    NotificationType.LOT_EXPIRED,
-                    "TitleLotExpired",
-                    "BodyLotExpired",
-                    lot.getOwner());
+            notificationService.createNotificationLotExpired(lot);
             log.info(String.format("Lot %s not sold", lot.getTitle()));
         }
+        lot.setUpdateAt(now);
+        lot.setExpiresAt(now);
         return lotRepository.save(lot);
     }
 
@@ -160,7 +147,7 @@ public class LotService {
             Bid lastBid = bidRepository.getBidByLotIdAndMaxSize(lot.getId());
             if (lastBid != null) {
                 lot.setStatus(LotStatus.SOLD);
-                Bid bid = bidRepository.getBidByLotAndStatusActual(lot);
+                Bid bid = lot.getCurrentBid();
                 bid.setStatus(BidStatus.SUCCESSFUL);
                 lotRepository.save(lot);
             } else {

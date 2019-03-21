@@ -2,6 +2,7 @@ package com.sergey.zhuravlev.auctionserver.repository;
 
 
 import com.querydsl.core.types.Predicate;
+import com.sergey.zhuravlev.auctionserver.entity.Account;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -13,7 +14,9 @@ import java.util.Optional;
 
 public interface LotRepository extends JpaRepository<Lot, Long>, QuerydslPredicateExecutor<Lot> {
 
-    Lot getLotById(Long id);
+    Optional<Lot> findById(Long id);
+
+    Optional<Lot> findByIdAndOwner(Long id, Account owner);
 
     @Override
     Optional<Lot> findOne(Predicate predicate);

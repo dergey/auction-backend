@@ -31,10 +31,10 @@ public class WebLayerTest {
 
     @Test
     public void testUserLogin() throws Exception {
-        User testUser = userRepository.findAll().get(0);
+        User testLocalUser = userRepository.findAll().get(0);
 
         RequestBuilder requestBuilder = formLogin()
-                .user(testUser.getUsername())
+                .user(testLocalUser.getPrincipal().getEmail())
                 .password(PASSWORD);
         mockMvc.perform(requestBuilder)
                 .andDo(print())

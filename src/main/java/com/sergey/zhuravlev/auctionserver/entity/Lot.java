@@ -18,7 +18,7 @@ import java.util.Date;
 public class Lot {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "title", length = 50, nullable = false)
@@ -51,13 +51,17 @@ public class Lot {
     @Column(name = "auction_step", nullable = false)
     private Long auctionStep;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "current_bid_id")
+    private Bid currentBid;
+
     @Column(name = "status", length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
     private LotStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "owner_account_id", nullable = false)
+    private Account owner;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "category_id")

@@ -1,17 +1,14 @@
 package com.sergey.zhuravlev.auctionserver.controller;
 
-import com.sergey.zhuravlev.auctionserver.converter.UserConverter;
+import com.sergey.zhuravlev.auctionserver.dto.ResponseAccountDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.AuthResponseDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.LoginRequestDto;
-import com.sergey.zhuravlev.auctionserver.dto.RequestUserDto;
-import com.sergey.zhuravlev.auctionserver.dto.ResponseUserDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.SingUpRequestDto;
+import com.sergey.zhuravlev.auctionserver.entity.Account;
 import com.sergey.zhuravlev.auctionserver.entity.Image;
-import com.sergey.zhuravlev.auctionserver.entity.User;
-import com.sergey.zhuravlev.auctionserver.enums.AuthProvider;
+import com.sergey.zhuravlev.auctionserver.service.AccountService;
 import com.sergey.zhuravlev.auctionserver.service.ImageService;
 import com.sergey.zhuravlev.auctionserver.service.TokenProviderService;
-import com.sergey.zhuravlev.auctionserver.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,13 +25,14 @@ import javax.validation.Valid;
 @RequestMapping(value = "/auth")
 public class AuthenticationController {
 
-    private final UserService userService;
     private final ImageService imageService;
-    private final AuthenticationManager authenticationManager;
+    private final AccountService accountService;
 
+    private final AuthenticationManager authenticationManager;
     private final TokenProviderService tokenProviderService;
 
-    @PostMapping("/login")
+
+    @PostMapping("/authenticate")
     public AuthResponseDto authenticate(@Valid @RequestBody LoginRequestDto loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -47,14 +45,19 @@ public class AuthenticationController {
         return new AuthResponseDto(token);
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseUserDto registration(@Validated @RequestBody SingUpRequestDto userDto) {
-        Image image = imageService.getImage(userDto.getPhotoId());
-        User user = userService.create(userDto.getEmail(), userDto.getUsername(), image,
-                userDto.getPassword(), AuthProvider.LOCAL, null, false,
-                userDto.getFirstname(), userDto.getLastname(), userDto.getBio());
-        return UserConverter.convert(user);
+    public ResponseAccountDto registration(@Validated @RequestBody SingUpRequestDto singUpRequestDto) {
+        Image photo = imageService.getImage(singUpRequestDto.getPhotoId());
+        Account account = accountService.createLocalAccount(
+                singUpRequestDto.getEmail(),
+                singUpRequestDto.getPassword(),
+                singUpRequestDto.getUsername(),
+                photo,
+                singUpRequestDto.getFirstname(),
+                singUpRequestDto.getLastname(),
+                singUpRequestDto.getBio());
+        return accountService.getAccountResponseDto(account);
     }
 
 }

@@ -4,11 +4,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.sergey.zhuravlev.auctionserver.entity.Lot;
 import com.sergey.zhuravlev.auctionserver.entity.QBid;
-import com.sergey.zhuravlev.auctionserver.entity.QLot;
-import com.sergey.zhuravlev.auctionserver.entity.User;
-import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
-
-import java.sql.Date;
 
 
 public class BidPredicateBuilder {

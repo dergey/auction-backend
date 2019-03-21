@@ -1,6 +1,10 @@
 package com.sergey.zhuravlev.auctionserver.security;
 
+import com.sergey.zhuravlev.auctionserver.entity.ForeignUser;
+import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
 import com.sergey.zhuravlev.auctionserver.entity.User;
+import com.sergey.zhuravlev.auctionserver.enums.UserType;
+import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -25,20 +29,38 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private final Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
-    public static UserPrincipal create(User user) {
-        List<GrantedAuthority> authorities = Collections.
-                singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-
+    public static UserPrincipal create(LocalUser localUser) {
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
         return new UserPrincipal(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
+                localUser.getId(),
+                localUser.getPrincipal().getEmail(),
+                localUser.getPassword(),
                 authorities
         );
     }
 
-    public static UserPrincipal create(User user, Map<String, Object> attributes) {
-        UserPrincipal userPrincipal = UserPrincipal.create(user);
+    public static UserPrincipal create(User user) {
+        if (user.getUserType() == UserType.LOCAL) {
+            return create((LocalUser) user);
+        } else if (user.getUserType() == UserType.FOREIGN) {
+            return create((ForeignUser) user);
+        } else {
+            throw new NotFoundException("User type not found!");
+        }
+    }
+
+    public static UserPrincipal create(ForeignUser foreignUser) {
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        return new UserPrincipal(
+                foreignUser.getId(),
+                foreignUser.getPrincipal().getEmail(),
+                null,
+                authorities
+        );
+    }
+
+    public static UserPrincipal create(ForeignUser foreignUser, Map<String, Object> attributes) {
+        UserPrincipal userPrincipal = UserPrincipal.create(foreignUser);
         userPrincipal.setAttributes(attributes);
         return userPrincipal;
     }

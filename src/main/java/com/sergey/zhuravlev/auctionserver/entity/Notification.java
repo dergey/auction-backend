@@ -18,12 +18,11 @@ import java.util.Date;
 public class Notification {
 
     @Id
-    @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "type", nullable = false)
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
 
     @Column(name = "title", nullable = false, length = 100)
@@ -32,11 +31,14 @@ public class Notification {
     @Column(name = "body", nullable = false, length = 100)
     private String body;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Column(name = "create_at")
     private Date createAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_account_id", nullable = false)
+    private Account recipient;
+
+    @Column(name = "is_read", nullable = false)
+    private Boolean read;
 
 }

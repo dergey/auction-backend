@@ -1,17 +1,15 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
-import com.sergey.zhuravlev.auctionserver.entity.Image;
-import com.sergey.zhuravlev.auctionserver.exception.OAuth2AuthenticationProcessingException;
-import com.sergey.zhuravlev.auctionserver.enums.AuthProvider;
+import com.sergey.zhuravlev.auctionserver.entity.ForeignUser;
 import com.sergey.zhuravlev.auctionserver.entity.User;
+import com.sergey.zhuravlev.auctionserver.enums.AuthProvider;
+import com.sergey.zhuravlev.auctionserver.enums.UserType;
+import com.sergey.zhuravlev.auctionserver.exception.OAuth2AuthenticationProcessingException;
 import com.sergey.zhuravlev.auctionserver.repository.UserRepository;
 import com.sergey.zhuravlev.auctionserver.security.UserPrincipal;
 import com.sergey.zhuravlev.auctionserver.security.user.OAuth2UserInfo;
 import com.sergey.zhuravlev.auctionserver.security.user.OAuth2UserInfoFactory;
 import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -21,7 +19,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
@@ -31,9 +28,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final UserService userService;
-    private final ImageService imageService;
-
-    private final RestTemplate restTemplate;
 
     @Override
     @Transactional
@@ -69,62 +63,39 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }
 
+        Optional<User> userOptional = userRepository.findByPrincipalEmail(oAuth2UserInfo.getEmail());
+        AuthProvider provider = getAuthProvider(oAuth2UserRequest.getClientRegistration().getRegistrationId());
         User user;
-        Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
 
-        if(userOptional.isPresent()) {
+        if (userOptional.isPresent()) {
             user = userOptional.get();
-            if(!user.getProvider().equals(getAuthProvider(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
-                throw new OAuth2AuthenticationProcessingException("Looks like you're signed up with " +
-                        user.getProvider() + " account. Please use your " + user.getProvider() +
-                        " account to login.");
+            if (user.getUserType() == UserType.LOCAL) {
+                throw new OAuth2AuthenticationProcessingException("Looks like you're signed up with "
+                        + provider
+                        + " account. Please use your local account to login.");
+            } else if (user.getUserType() == UserType.FOREIGN) {
+                if (!((ForeignUser) user).getProvider().equals(provider)) {
+                    throw new OAuth2AuthenticationProcessingException("Looks like you're signed up with "
+                            + provider
+                            + " account. Please use your " + ((ForeignUser) user).getProvider()
+                            + " account to login.");
+                }
+            } else {
+                //TODO
+                throw new OAuth2AuthenticationProcessingException("Ops");
             }
-            user = updateExistingUser(user, oAuth2UserInfo);
         } else {
-            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
+            user = registerNewForeignUser(oAuth2UserRequest, oAuth2UserInfo);
         }
-        user = userRepository.save(user);
-        return UserPrincipal.create(user, oAuth2User.getAttributes());
+
+        return UserPrincipal.create((ForeignUser) user, oAuth2User.getAttributes());
     }
 
-    private User registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
-        ResponseEntity<byte[]> imageResponse = restTemplate.getForEntity(oAuth2UserInfo.getImageUrl(), byte[].class);
-
-        Image userPhoto = null;
-
-        if (imageResponse.getStatusCode().is2xxSuccessful() && imageResponse.hasBody()) {
-            userPhoto = imageService.save(imageResponse.getBody());
-        }
-
-        //TODO ADDED NewUser entity
-        return userService.create(
+    private ForeignUser registerNewForeignUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
+       return userService.createForeignUser(
                 oAuth2UserInfo.getEmail(),
-                StringUtils.trimAllWhitespace(oAuth2UserInfo.getName().toLowerCase()),
-                userPhoto,
-                RandomStringUtils.randomAlphanumeric(16),
                 getAuthProvider(oAuth2UserRequest.getClientRegistration().getRegistrationId()),
-                oAuth2UserInfo.getId(),
-                false,
-                "",
-                "",
-                ""
-        );
-    }
-
-    private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
-        byte[] imageBytes = restTemplate.getForObject(oAuth2UserInfo.getImageUrl(), byte[].class);
-        Image userPhoto = imageService.save(imageBytes);
-        return userService.update(
-                existingUser.getId(),
-                existingUser.getUsername(),
-                userPhoto,
-                existingUser.getPassword(),
-                existingUser.getProvider(),
-                existingUser.getProviderId(),
-                existingUser.getEmailVerified(),
-                existingUser.getFirstname(),
-                existingUser.getLastname(),
-                existingUser.getBio()
+                oAuth2UserInfo.getId()
         );
     }
 

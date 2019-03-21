@@ -10,11 +10,6 @@ import java.util.List;
 
 public interface BidRepository extends JpaRepository<Bid, Long> {
 
-    List<Bid> getByLotId(Long id);
-
-    @Query("SELECT bid FROM Bid bid WHERE bid.lot = :lot AND bid.status = 'ACTUAL'")
-    Bid getBidByLotAndStatusActual(Lot lot);
-
     @Query("SELECT bid FROM Bid bid WHERE bid.lot.id = :id AND bid.amount = (SELECT MAX(bid.amount) FROM Bid bid WHERE bid.lot.id = :id AND bid.status = 'BROKEN')")
     Bid getBidByLotIdAndMaxSize(@Param("id") Long id);
 

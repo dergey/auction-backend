@@ -4,7 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.sergey.zhuravlev.auctionserver.entity.QBid;
 import com.sergey.zhuravlev.auctionserver.entity.QLot;
-import com.sergey.zhuravlev.auctionserver.entity.User;
+import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
 
 import java.sql.Date;
@@ -27,14 +27,14 @@ public class LotPredicateBuilder {
         return this;
     }
 
-    public LotPredicateBuilder withOwner(User owner) {
+    public LotPredicateBuilder withOwner(LocalUser owner) {
         if (owner != null) {
             builder.and(lotQuery.owner.eq(owner));
         }
         return this;
     }
 
-    public LotPredicateBuilder withBuyer(User buyer) {
+    public LotPredicateBuilder withBuyer(LocalUser buyer) {
         if (buyer != null) {
             builder.and(bidQuery.owner.eq(buyer));
         }

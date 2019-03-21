@@ -18,7 +18,7 @@ import javax.persistence.*;
 public class Image {
 
     @Id
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name", length = 16, nullable = false, unique = true)
@@ -27,9 +27,9 @@ public class Image {
     @Column(name = "filename", length = 50)
     private String filename;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "owner_id")
-    private User owner;
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_account_id")
+    private Account owner;
 
     @Column(name = "context_type", length = 50, nullable = false)
     private String contentType;

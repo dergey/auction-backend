@@ -1,11 +1,13 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
-import com.sergey.zhuravlev.auctionserver.entity.Image;
+import com.sergey.zhuravlev.auctionserver.entity.ForeignUser;
+import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
+import com.sergey.zhuravlev.auctionserver.entity.Principal;
+import com.sergey.zhuravlev.auctionserver.entity.User;
 import com.sergey.zhuravlev.auctionserver.enums.AuthProvider;
 import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
 import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.repository.UserRepository;
-import com.sergey.zhuravlev.auctionserver.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,66 +18,53 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public User get(String username) {
+    public User getUserByEmail(String email) {
         return userRepository
-                .findByEmail(username)
-                .orElseThrow(() -> new NotFoundException(String.format("User with username %s not found", username)));
+                .findByPrincipalEmail(email)
+                .orElseThrow(() -> new NotFoundException(String.format("LocalUser with email %s not found", email)));
     }
 
     @Transactional
-    public User create(String email, String username, Image photo, String rawPassword,
-                       AuthProvider provider, String providerId, Boolean emailVerified,
-                       String firstname, String lastname, String bio) {
-
-        if (userRepository.existsByEmail(email)) {
+    public LocalUser createLocalUser(String email, String rawPassword) {
+        if (userRepository.existsByPrincipalEmail(email)) {
             throw new BadRequestException("email has created");
         }
-
-        if (userRepository.existsByUsername(username)) {
-            throw new BadRequestException("username has created");
-        }
-
-        User user = new User(null,
-                email,
-                username,
-                photo,
-                passwordEncoder.encode(rawPassword),
-                provider,
-                providerId,
-                emailVerified,
-                firstname,
-                lastname,
-                null,
-                bio);
-        user = userRepository.save(user);
-        return user;
+        Principal principal = new Principal(null, email, null);
+        LocalUser localUser = new LocalUser();
+        localUser.setPrincipal(principal);
+        localUser.setPassword(passwordEncoder.encode(rawPassword));
+        localUser = userRepository.save(localUser);
+        return localUser;
     }
 
     @Transactional
-    public User update(Long id, String username, Image photo, String rawPassword,
-                       AuthProvider provider, String providerId, Boolean emailVerified,
-                       String firstname, String lastname, String bio) {
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("User with id %s not found", id)));
+    public ForeignUser createForeignUser(String email, AuthProvider provider, String providerId) {
+        if (userRepository.existsByPrincipalEmail(email)) {
+            throw new BadRequestException("Email already created");
+        }
+        Principal principal = new Principal(null, email, null);
+        ForeignUser foreignUser = new ForeignUser();
+        foreignUser.setPrincipal(principal);
+        foreignUser.setProvider(provider);
+        foreignUser.setProviderId(providerId);
+        foreignUser = userRepository.save(foreignUser);
+        return foreignUser;
+    }
 
-        if (userRepository.existsByUsername(username)) {
-            throw new BadRequestException("username has created");
+    @Transactional
+    public LocalUser updatePassword(LocalUser user, String oldPassword, String newPassword) {
+        user = (LocalUser) userRepository
+                .findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BadRequestException("Update exception: username has created");
         }
 
-        user.setUsername(username);
-        user.setPhoto(photo);
-        user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setProvider(provider);
-        user.setProviderId(providerId);
-        user.setEmailVerified(emailVerified);
-        user.setFirstname(firstname);
-        user.setLastname(lastname);
-        user.setBio(bio);
+        user.setPassword(passwordEncoder.encode(newPassword));
         return user;
     }
 

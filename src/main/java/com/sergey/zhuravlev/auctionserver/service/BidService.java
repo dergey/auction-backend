@@ -1,12 +1,13 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
 import com.sergey.zhuravlev.auctionserver.dto.RequestBidDto;
-import com.sergey.zhuravlev.auctionserver.entity.Lot;
-import com.sergey.zhuravlev.auctionserver.entity.User;
+import com.sergey.zhuravlev.auctionserver.entity.*;
 import com.sergey.zhuravlev.auctionserver.enums.BidStatus;
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
+import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
+import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.repository.BidRepository;
-import com.sergey.zhuravlev.auctionserver.entity.Bid;
+import com.sergey.zhuravlev.auctionserver.repository.LotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BidService {
 
-    private final LotService lotService;
+    private final LotRepository lotRepository;
     private final BidRepository bidRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public Bid getBid(Long id) {
@@ -28,44 +30,44 @@ public class BidService {
     }
 
     @Transactional
-    public Bid createBid(User user, RequestBidDto requestBidDto) {
+    public Bid createBid(Account account, RequestBidDto requestBidDto) {
         Date now = new Date();
-        Lot lot = lotService.getLot(requestBidDto.getLotId());
+        Lot lot = lotRepository.findById(requestBidDto.getLotId()).orElseThrow(() -> new NotFoundException("Lot not found"));
         if (!lot.getStatus().equals(LotStatus.ACTIVE)) throw new RuntimeException("Lot is not active");
-        if (!lot.getCurrency().getCurrencyCode().equals(requestBidDto.getCurrencyCode())) throw new RuntimeException("Currency conversion post MVP");
-        Bid currentBid = bidRepository.getBidByLotAndStatusActual(lot);
+        if (!lot.getCurrency().getCurrencyCode().equals(requestBidDto.getCurrency())) throw new BadRequestException("Currency conversion post MVP");
+        Bid currentBid = lot.getCurrentBid();
         if (currentBid != null) {
-            if (requestBidDto.getAmount().compareTo(currentBid.getAmount()) <= 0) throw new RuntimeException("Actual bid have greet amount");
+            if (requestBidDto.getAmount().compareTo(currentBid.getAmount()) <= 0) throw new BadRequestException("Actual bid have greet amount");
             currentBid.setStatus(BidStatus.BROKEN);
         }
+
         Bid bid = new Bid(
                 null,
                 now,
                 requestBidDto.getAmount(),
-                Currency.getInstance(requestBidDto.getCurrencyCode()),
-                BidStatus.ACTUAL,
+                Currency.getInstance(requestBidDto.getCurrency()),
+                BidStatus.CURRENT,
                 lot,
-                user);
+                account);
         bid = bidRepository.save(bid);
+        lot.setCurrentBid(bid);
+
+        notificationService.createNotificationBidBroken(currentBid);
+        notificationService.createNotificationNewBid(bid);
+
         return bid;
-        //TODO Уведомление предыдущему владельцу лоту
-        //log.debug("Ставка  : " + currentBid);
-        //TODO move to aspect
-        //if (currentBid != null && !currentBid.getBuyer().getNotificationToken().isEmpty()) {
-        //  log.debug("SEND MESSAGE : buyer - " + currentBid.getBuyer().getUsername() + " new bid size - " + bid.getSize() + " lot " + lot);
-        //  notificationService.send(new NotificationBetBroken(currentBid.getBuyer(), bid, lot));
-        //}
     }
 
     @Transactional
     public Bid cancelBid(Bid bid) {
         bid = bidRepository.getBidById(bid.getId());
         if (bid.getStatus().equals(BidStatus.CANCELED) || bid.getStatus().equals(BidStatus.SUCCESSFUL)) {
-            throw new RuntimeException("Already in finished status");
+            throw new BadRequestException("Bid already in finished status");
         }
-        if (bid.getStatus().equals(BidStatus.ACTUAL)) {
+        if (bid.getStatus().equals(BidStatus.CURRENT)) {
+            //TODO change logic or add notification ???
             Bid oldBid = bidRepository.getBidByLotIdAndMaxSize(bid.getLot().getId());
-            oldBid.setStatus(BidStatus.ACTUAL);
+            oldBid.setStatus(BidStatus.CURRENT);
         }
         bid.setStatus(BidStatus.CANCELED);
         return bid;
