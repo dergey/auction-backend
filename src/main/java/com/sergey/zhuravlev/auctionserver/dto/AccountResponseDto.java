@@ -6,11 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponseAccountDto {
+public class AccountResponseDto {
 
     @JsonProperty(value = "email")
     private String username;
@@ -25,7 +28,7 @@ public class ResponseAccountDto {
     private String lastname;
 
     @JsonProperty(value = "stars")
-    private Double stars;
+    private BigDecimal stars;
 
     @JsonProperty(value = "bio")
     private String bio;

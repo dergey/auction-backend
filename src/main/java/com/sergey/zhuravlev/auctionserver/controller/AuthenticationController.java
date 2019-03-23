@@ -1,6 +1,7 @@
 package com.sergey.zhuravlev.auctionserver.controller;
 
-import com.sergey.zhuravlev.auctionserver.dto.ResponseAccountDto;
+import com.sergey.zhuravlev.auctionserver.converter.AccountConverter;
+import com.sergey.zhuravlev.auctionserver.dto.AccountResponseDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.AuthResponseDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.LoginRequestDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.SingUpRequestDto;
@@ -47,8 +48,8 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseAccountDto registration(@Validated @RequestBody SingUpRequestDto singUpRequestDto) {
-        Image photo = imageService.getImage(singUpRequestDto.getPhotoId());
+    public AccountResponseDto registration(@Validated @RequestBody SingUpRequestDto singUpRequestDto) {
+        Image photo = imageService.getImage(singUpRequestDto.getPhoto());
         Account account = accountService.createLocalAccount(
                 singUpRequestDto.getEmail(),
                 singUpRequestDto.getPassword(),
@@ -57,7 +58,7 @@ public class AuthenticationController {
                 singUpRequestDto.getFirstname(),
                 singUpRequestDto.getLastname(),
                 singUpRequestDto.getBio());
-        return accountService.getAccountResponseDto(account);
+        return AccountConverter.getAccountResponseDto(account);
     }
 
 }

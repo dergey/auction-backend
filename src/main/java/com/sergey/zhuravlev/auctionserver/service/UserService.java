@@ -1,12 +1,12 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
-import com.sergey.zhuravlev.auctionserver.entity.ForeignUser;
-import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
-import com.sergey.zhuravlev.auctionserver.entity.Principal;
-import com.sergey.zhuravlev.auctionserver.entity.User;
+import com.sergey.zhuravlev.auctionserver.converter.AccountConverter;
+import com.sergey.zhuravlev.auctionserver.dto.UserDto;
+import com.sergey.zhuravlev.auctionserver.entity.*;
 import com.sergey.zhuravlev.auctionserver.enums.AuthProvider;
 import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
 import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
+import com.sergey.zhuravlev.auctionserver.repository.AccountRepository;
 import com.sergey.zhuravlev.auctionserver.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,13 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository
                 .findByPrincipalEmail(email)
-                .orElseThrow(() -> new NotFoundException(String.format("LocalUser with email %s not found", email)));
+                .orElseThrow(() -> new NotFoundException(String.format("User with email %s not found", email)));
     }
 
     @Transactional
@@ -68,4 +69,16 @@ public class UserService {
         return user;
     }
 
+    @Transactional(readOnly = true)
+    public UserDto getUserDto(User user) {
+        user = userRepository
+                .findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        UserDto userDto = new UserDto();
+        userDto.setEmail(user.getPrincipal().getEmail());
+        userDto.setPhone(user.getPrincipal().getPhone());
+        Account account = accountRepository.findAccountByUser(user).orElse(null);
+        userDto.setAccount(AccountConverter.getAccountResponseDto(account));
+        return userDto;
+    }
 }

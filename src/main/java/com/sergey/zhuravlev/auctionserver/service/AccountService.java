@@ -1,6 +1,5 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
-import com.sergey.zhuravlev.auctionserver.dto.ResponseAccountDto;
 import com.sergey.zhuravlev.auctionserver.entity.Account;
 import com.sergey.zhuravlev.auctionserver.entity.Image;
 import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
@@ -43,11 +42,5 @@ public class AccountService {
         account.setBio(bio);
         account = accountRepository.save(account);
         return account;
-    }
-
-
-    public ResponseAccountDto getAccountResponseDto(Account account) {
-        //TODO
-        return new ResponseAccountDto();
     }
 }

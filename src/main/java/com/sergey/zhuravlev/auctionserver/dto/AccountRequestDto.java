@@ -19,7 +19,7 @@ public class AccountRequestDto {
     private String username;
 
     @JsonProperty(value = "photo")
-    private String photoId;
+    private String photo;
 
     @JsonProperty(value = "firstname")
     private String firstname;
