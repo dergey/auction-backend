@@ -5,15 +5,13 @@ import com.sergey.zhuravlev.auctionserver.dto.RequestBidDto;
 import com.sergey.zhuravlev.auctionserver.dto.ResponseBidDto;
 import com.sergey.zhuravlev.auctionserver.entity.Account;
 import com.sergey.zhuravlev.auctionserver.entity.Bid;
-import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
 import com.sergey.zhuravlev.auctionserver.faucet.SecurityFaucet;
 import com.sergey.zhuravlev.auctionserver.service.BidService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import javax.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +28,7 @@ public class BidController {
 
     @Secured("ROLE_USER")
     @PostMapping
-    public ResponseBidDto createBid(@Validated @RequestBody RequestBidDto bidDto) {
+    public ResponseBidDto createBid(@Valid @RequestBody RequestBidDto bidDto) {
         Account account = securityFaucet.getCurrentAccount();
         Bid bid = bidService.createBid(account, bidDto);
         return BidConverter.convert(bid);

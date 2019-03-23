@@ -21,9 +21,11 @@ public class AccountRequestDto {
     @JsonProperty(value = "photo")
     private String photo;
 
+    @NotBlank
     @JsonProperty(value = "firstname")
     private String firstname;
 
+    @NotBlank
     @JsonProperty(value = "lastname")
     private String lastname;
 

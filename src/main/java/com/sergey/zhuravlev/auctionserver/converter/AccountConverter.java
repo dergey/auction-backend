@@ -11,7 +11,7 @@ public class AccountConverter {
         accountResponseDto.setUsername(account.getUsername());
         accountResponseDto.setFirstname(account.getFirstname());
         accountResponseDto.setLastname(account.getLastname());
-        accountResponseDto.setPhoto(account.getPhoto().getName());
+        accountResponseDto.setPhoto(account.getPhoto() != null ? account.getPhoto().getName() : null);
         accountResponseDto.setStars(account.getAverageStars());
         accountResponseDto.setBio(account.getBio());
         return accountResponseDto;

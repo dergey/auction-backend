@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 
 @Getter
@@ -15,7 +14,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AccountResponseDto {
 
-    @JsonProperty(value = "email")
+    @JsonProperty(value = "username")
     private String username;
 
     @JsonProperty(value = "photo")

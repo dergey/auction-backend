@@ -10,9 +10,9 @@ import com.sergey.zhuravlev.auctionserver.faucet.SecurityFaucet;
 import com.sergey.zhuravlev.auctionserver.service.LotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -44,7 +44,7 @@ public class LotController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseLotDto createLot(@Validated @RequestBody RequestLotDto lotDto) {
+    public ResponseLotDto createLot(@Valid @RequestBody RequestLotDto lotDto) {
         Account account = securityFaucet.getCurrentAccount();
         Lot lot = lotService.createLot(lotDto, account);
         return LotConverter.convert(lot);
@@ -52,7 +52,7 @@ public class LotController {
 
     @PostMapping("{lot_id}")
     public ResponseLotDto updateLot(@PathVariable("lot_id") Long lotId,
-                                    @Validated @RequestBody RequestLotDto lotDto) {
+                                    @Valid @RequestBody RequestLotDto lotDto) {
         Account account = securityFaucet.getCurrentAccount();
         Lot lot = lotService.getLot(lotId);
         lot = lotService.updateLot(lot, account, lotDto);

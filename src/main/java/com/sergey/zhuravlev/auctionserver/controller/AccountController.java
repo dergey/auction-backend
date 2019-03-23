@@ -12,6 +12,8 @@ import com.sergey.zhuravlev.auctionserver.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/account")
@@ -28,7 +30,7 @@ public class AccountController {
     }
 
     @PostMapping
-    public AccountResponseDto createAccount(AccountRequestDto accountRequestDto) {
+    public AccountResponseDto createAccount(@Valid @RequestBody AccountRequestDto accountRequestDto) {
         User user = securityFaucet.getCurrentUser();
         Image photo = imageService.getImage(accountRequestDto.getPhoto());
         Account account = accountService.createAccount(

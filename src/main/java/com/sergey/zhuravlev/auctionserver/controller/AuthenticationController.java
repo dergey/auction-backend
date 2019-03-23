@@ -16,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -48,7 +47,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AccountResponseDto registration(@Validated @RequestBody SingUpRequestDto singUpRequestDto) {
+    public AccountResponseDto registration(@Valid @RequestBody SingUpRequestDto singUpRequestDto) {
         Image photo = imageService.getImage(singUpRequestDto.getPhoto());
         Account account = accountService.createLocalAccount(
                 singUpRequestDto.getEmail(),
