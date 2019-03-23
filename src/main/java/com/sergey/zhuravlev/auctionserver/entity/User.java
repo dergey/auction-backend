@@ -14,7 +14,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING, length = 20)
+@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class User {
 
     @Id
@@ -27,7 +27,7 @@ public abstract class User {
     private Principal principal;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_type", nullable = false, length = 10)
+    @Column(name = "user_type", nullable = false, insertable = false, updatable = false)
     private UserType userType;
 
 }
