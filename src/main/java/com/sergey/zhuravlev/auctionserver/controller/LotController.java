@@ -26,12 +26,12 @@ public class LotController {
 
     @GetMapping
     public Collection<ResponseLotDto> list(
-            @RequestParam(value = "category", required = false) Long categoryID,
-            @RequestParam(value = "owner", required = false) Long ownerID,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "owner", required = false) String owner,
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "page", required = false) int pageNumber,
             @RequestParam(value = "size", required = false) int pageSize) {
-        return lotService.list(LotStatus.ACTIVE, title, ownerID, categoryID, pageNumber, pageSize).stream()
+        return lotService.list(LotStatus.ACTIVE, title, owner, category, pageNumber, pageSize).stream()
                 .map(LotConverter::convert).collect(Collectors.toList());
     }
 

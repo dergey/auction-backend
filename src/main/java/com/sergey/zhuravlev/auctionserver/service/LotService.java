@@ -8,14 +8,15 @@ import com.sergey.zhuravlev.auctionserver.enums.BidStatus;
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
 import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
 import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
-import com.sergey.zhuravlev.auctionserver.exception.SecurityException;
 import com.sergey.zhuravlev.auctionserver.repository.BidRepository;
 import com.sergey.zhuravlev.auctionserver.repository.CategoryRepository;
 import com.sergey.zhuravlev.auctionserver.repository.ImageRepository;
 import com.sergey.zhuravlev.auctionserver.repository.LotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,12 +43,12 @@ public class LotService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Lot> list(LotStatus lotStatus, String titleLike, Long ownerId, Long categoryId, Integer pageNumber, Integer pageSize) {
+    public Collection<Lot> list(LotStatus lotStatus, String titleLike, String owner, String category, Integer pageNumber, Integer pageSize) {
         Predicate lotPredicate = new LotPredicateBuilder()
                 .withStatus(lotStatus)
                 .withTitleLike(titleLike)
-                .withOwnerId(ownerId)
-                .withCategoryId(categoryId)
+                .withOwnerName(owner)
+                .withCategoryName(category)
                 .build();
 
         Page<Lot> page = lotRepository.findAll(lotPredicate, PageRequest.of(pageNumber, pageSize,

@@ -4,7 +4,6 @@ import com.sergey.zhuravlev.auctionserver.converter.AccountConverter;
 import com.sergey.zhuravlev.auctionserver.dto.AccountRequestDto;
 import com.sergey.zhuravlev.auctionserver.dto.AccountResponseDto;
 import com.sergey.zhuravlev.auctionserver.entity.Account;
-import com.sergey.zhuravlev.auctionserver.entity.Image;
 import com.sergey.zhuravlev.auctionserver.entity.User;
 import com.sergey.zhuravlev.auctionserver.faucet.SecurityFaucet;
 import com.sergey.zhuravlev.auctionserver.service.AccountService;
@@ -32,11 +31,12 @@ public class AccountController {
     @PostMapping
     public AccountResponseDto createAccount(@Valid @RequestBody AccountRequestDto accountRequestDto) {
         User user = securityFaucet.getCurrentUser();
-        Image photo = imageService.getImage(accountRequestDto.getPhoto());
-        Account account = accountService.createAccount(
+        Account account = accountService.createUpdateAccount(
                 user,
                 accountRequestDto.getUsername(),
-                photo,
+                accountRequestDto.getPhoto() != null && !accountRequestDto.getPhoto().isEmpty() ?
+                        imageService.getImage(accountRequestDto.getPhoto()) :
+                        null,
                 accountRequestDto.getFirstname(),
                 accountRequestDto.getLastname(),
                 accountRequestDto.getBio());

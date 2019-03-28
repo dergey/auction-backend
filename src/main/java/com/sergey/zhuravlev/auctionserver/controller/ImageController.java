@@ -26,11 +26,11 @@ public class ImageController {
     }
 
     @PostMapping
-    public ResponseEntity upload(@RequestParam MultipartFile file) {
+    public HttpEntity<Void> upload(@RequestParam MultipartFile file) {
         Image image = imageService.save(file);
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.LOCATION, "/images/" + image.getName());
-        return new ResponseEntity(headers, HttpStatus.CREATED);
+        headers.add(HttpHeaders.LOCATION, "/api/images/" + image.getName());
+        return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
 }

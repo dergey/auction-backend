@@ -35,7 +35,7 @@ public class Image {
     private String contentType;
 
     @Lob
-    @Column(name = "context", columnDefinition="BLOB", nullable = false)
+    @Column(name = "context", nullable = false)
     private byte[] content;
 
 }

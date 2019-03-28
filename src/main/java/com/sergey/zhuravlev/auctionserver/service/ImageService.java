@@ -2,6 +2,7 @@ package com.sergey.zhuravlev.auctionserver.service;
 
 import com.sergey.zhuravlev.auctionserver.entity.Image;
 import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
+import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
@@ -26,7 +27,7 @@ public class ImageService {
 
     @Transactional(readOnly = true)
     public Image getImage(String name) {
-        return imageRepository.findByName(name);
+        return imageRepository.findByName(name).orElseThrow(() -> new NotFoundException("Image not found"));
     }
 
     @Transactional

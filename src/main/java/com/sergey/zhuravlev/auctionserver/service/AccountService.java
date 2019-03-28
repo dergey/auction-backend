@@ -4,6 +4,7 @@ import com.sergey.zhuravlev.auctionserver.entity.Account;
 import com.sergey.zhuravlev.auctionserver.entity.Image;
 import com.sergey.zhuravlev.auctionserver.entity.LocalUser;
 import com.sergey.zhuravlev.auctionserver.entity.User;
+import com.sergey.zhuravlev.auctionserver.exception.BadRequestException;
 import com.sergey.zhuravlev.auctionserver.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +29,17 @@ public class AccountService {
     public Account createLocalAccount(String email, String password, String username, Image photo,
                                  String firstname, String lastname, String bio) {
         LocalUser localUser = userService.createLocalUser(email, password);
-        return createAccount(localUser, username, photo, firstname, lastname, bio);
+        return createUpdateAccount(localUser, username, photo, firstname, lastname, bio);
     }
 
     @Transactional
-    public Account createAccount(User user, String username, Image photo, String firstname, String lastname, String bio) {
-        Account account = new Account();
+    public Account createUpdateAccount(User user, String username, Image photo, String firstname, String lastname, String bio) {
+        Account account = accountRepository
+                .findAccountByUser(user)
+                .orElse(new Account());
+        if (!username.equals(account.getUsername()) && accountRepository.existsByUsername(username)) {
+            throw new BadRequestException("Username already in use");
+        }
         account.setUser(user);
         account.setUsername(username);
         account.setPhoto(photo);
