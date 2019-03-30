@@ -20,7 +20,7 @@ public class DefaultDataService {
     @PostConstruct
     @Transactional
     void initialize() throws IOException {
-        if (categoryService.list().size() == 0) {
+        if (categoryService.list().isEmpty()) {
             ClassPathResource resource = new ClassPathResource("images/category_all.png");
             Image image = imageService.save(IOUtils.toByteArray(resource.getInputStream()));
             categoryService.createCategory("Other", image);

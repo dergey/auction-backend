@@ -41,7 +41,7 @@ public class RequestLotDto {
 
     @Positive
     @JsonProperty(value = "auction_step")
-    private Long auctionStep;
+    private BigDecimal auctionStep;
 
     @NotNull
     @JsonProperty(value = "category_id")

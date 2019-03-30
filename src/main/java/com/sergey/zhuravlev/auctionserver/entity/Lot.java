@@ -1,7 +1,10 @@
 package com.sergey.zhuravlev.auctionserver.entity;
 
 import com.sergey.zhuravlev.auctionserver.enums.LotStatus;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -49,7 +52,7 @@ public class Lot {
     private Currency currency;
 
     @Column(name = "auction_step", nullable = false)
-    private Long auctionStep;
+    private BigDecimal auctionStep;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "current_bid_id")

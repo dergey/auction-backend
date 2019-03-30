@@ -22,8 +22,8 @@ public class LotConverter {
         lotDto.setCurrencyCode(lot.getCurrency().getCurrencyCode());
         lotDto.setAuctionStep(lot.getAuctionStep());
         lotDto.setStatus(lot.getStatus());
-        lotDto.setOwnerId(lot.getOwner().getId());
-        lotDto.setCategoryId(lot.getCategory().getId());
+        lotDto.setOwner(lot.getOwner().getUsername());
+        lotDto.setCategory(lot.getCategory().getName());
         return lotDto;
     }
 

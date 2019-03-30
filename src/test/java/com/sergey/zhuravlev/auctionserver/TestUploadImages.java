@@ -3,13 +3,10 @@ package com.sergey.zhuravlev.auctionserver;
 import com.sergey.zhuravlev.auctionserver.entity.Image;
 import com.sergey.zhuravlev.auctionserver.service.ImageService;
 import lombok.extern.java.Log;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Scope;
@@ -24,9 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -42,9 +36,6 @@ public class TestUploadImages {
     @Autowired
     private ImageService storageService;
 
-    @Value("${images.directory}")
-    private String directory;
-
     @Test
     public void shouldUploadFile() {
         ClassPathResource resource = new ClassPathResource("test.jpg", getClass());
@@ -54,7 +45,7 @@ public class TestUploadImages {
         map.add("file", resource);
         HttpEntity<MultiValueMap<String, Object>> requestEntity
                 = new HttpEntity<>(map, headers);
-        ResponseEntity<Object> response = this.restTemplate.postForEntity("/images/", requestEntity, Object.class);
+        ResponseEntity<Object> response = this.restTemplate.postForEntity("/api/images/", requestEntity, Object.class);
 
         assertEquals(response.getStatusCode(), HttpStatus.CREATED);
         log.warning("upload to " + response.getHeaders().get(HttpHeaders.LOCATION).get(0));
@@ -69,15 +60,8 @@ public class TestUploadImages {
                 file.getName(), "image/jpg", IOUtils.toByteArray(input));
         Image image = storageService.save(multipartFile);
         ResponseEntity<Void> response = this.restTemplate
-                .getForEntity("/images/{filename}", Void.class, image.getName());
+                .getForEntity("/api/images/{filename}", Void.class, image.getName());
         assertEquals(response.getStatusCodeValue(), 200);
-    }
-
-    @Before
-    public void cleanUp() throws IOException {
-        URI path = Paths.get(directory).toUri();
-        File directory = new File(path);
-        FileUtils.deleteDirectory(directory);
     }
 
 }

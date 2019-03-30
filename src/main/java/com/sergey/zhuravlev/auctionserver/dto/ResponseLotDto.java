@@ -45,15 +45,15 @@ public class ResponseLotDto {
     private String currencyCode;
 
     @JsonProperty(value = "auction_step")
-    private Long auctionStep;
+    private BigDecimal auctionStep;
 
     @JsonProperty(value = "status")
     private LotStatus status;
 
-    @JsonProperty(value = "owner_id")
-    private Long ownerId;
+    @JsonProperty(value = "owner")
+    private String owner;
 
-    @JsonProperty(value = "category_id")
-    private Long categoryId;
+    @JsonProperty(value = "category")
+    private String category;
 
 }

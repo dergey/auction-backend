@@ -25,4 +25,5 @@
 /.nb-gradle/
 
 ### Private file ###
-/src/main/resources/application.properties
+*.properties
+*.yaml

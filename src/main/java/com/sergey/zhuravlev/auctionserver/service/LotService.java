@@ -51,8 +51,9 @@ public class LotService {
                 .withCategoryName(category)
                 .build();
 
-        Page<Lot> page = lotRepository.findAll(lotPredicate, PageRequest.of(pageNumber, pageSize,
-                Sort.Direction.ASC, "firstName"));
+        Page<Lot> page = lotRepository.findAll(lotPredicate,
+                PageRequest.of(pageNumber == null ? 0 : pageNumber, pageSize == null ? 20 : pageSize,
+                Sort.Direction.ASC, "updateAt"));
         return page.getContent();
     }
 

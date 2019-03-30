@@ -1,0 +1,53 @@
+spring:
+  datasource:
+    url: [MY_SQL_URL]
+    username: [MY_SQL_USER]
+    password: [MY_SQL_PASS]
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL57Dialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: [YOUR GOOGLE CLIENT ID]
+            clientSecret: [YOUR GOOGLE CLIENT SECRET]
+            redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - profile
+          facebook:
+            clientId: [YOUR FACEBOOK CLIENT ID]
+            clientSecret: [YOUR FACEBOOK CLIENT SECRET]
+            redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - public_profile
+          github:
+            clientId: [YOUR GITHUB CLIENT ID]
+            clientSecret: [YOUR GITHUB CLIENT SECRET]
+            redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - user:email
+              - read:user
+        provider:
+          facebook:
+            authorizationUri: https://www.facebook.com/v3.0/dialog/oauth
+            tokenUri: https://graph.facebook.com/v3.0/oauth/access_token
+            userInfoUri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
+app:
+  auth:
+    tokenSecret: [YOUR TOKEN SECRET]
+    tokenExpirationMsec: 864000000
+  oauth2:
+    authorizedRedirectUris:
+      - http://localhost:3000/oauth2/redirect
+      - myandroidapp://oauth2/redirect
+      - myiosapp://oauth2/redirect
