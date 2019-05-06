@@ -7,7 +7,15 @@
     <groupId>com.sergey.zhuravlev.auctionserver</groupId>
     <artifactId>auctionserver</artifactId>
     <version>0.0.1-ALPHA</version>
-    <packaging>jar</packaging>
+
+    <modules>
+        <module>module/core</module>
+        <module>module/database</module>
+        <module>module/security</module>
+        <module>api</module>
+    </modules>
+
+    <packaging>pom</packaging>
 
     <name>Auction Server</name>
     <description>Auction Server project for Spring Boot</description>
@@ -24,6 +32,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -133,18 +142,14 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot</groupId>-->
+        <!--            <artifactId>spring-boot-starter-websocket</artifactId>-->
+        <!--        </dependency>-->
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>com.mysema.maven</groupId>
                 <artifactId>apt-maven-plugin</artifactId>
