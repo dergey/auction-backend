@@ -6,7 +6,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -15,12 +14,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class DefaultDataService {
 
-    private final CategoryService categoryService;
     private final ImageService imageService;
+    private final CategoryService categoryService;
 
     @PostConstruct
-    @Transactional
-    void initialize() throws IOException {
+    private void initialize() throws IOException {
         if (!categoryService.list(Pageable.unpaged()).hasContent()) {
             ClassPathResource resource = new ClassPathResource("images/category_all.png");
             Image image = imageService.save(IOUtils.toByteArray(resource.getInputStream()));
