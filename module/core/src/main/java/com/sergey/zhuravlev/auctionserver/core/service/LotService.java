@@ -10,7 +10,7 @@ import com.sergey.zhuravlev.auctionserver.database.repository.BidRepository;
 import com.sergey.zhuravlev.auctionserver.database.repository.ImageRepository;
 import com.sergey.zhuravlev.auctionserver.database.repository.LotRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-@Log
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class LotService {
@@ -117,7 +117,7 @@ public class LotService {
             lot.setStatus(LotStatus.UNSOLD);
             lotRepository.save(lot);
             notificationService.createNotificationLotExpired(lot);
-            log.info(String.format("Lot %s not sold", lot.getTitle()));
+            log.info("Lot {} not sold", lot.getTitle());
         }
         lot.setUpdateAt(now);
         lot.setExpiresAt(now);
@@ -141,7 +141,7 @@ public class LotService {
                 lotRepository.save(lot);
             }
         }
-        log.info(String.format("%s lots were completed in %s ms", lots.size(), System.currentTimeMillis() - time));
+        log.info("{} lots were completed in {} ms", lots.size(), System.currentTimeMillis() - time);
     }
 
 }

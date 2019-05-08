@@ -1,21 +1,19 @@
 package com.sergey.zhuravlev.auctionserver.service;
 
-import com.querydsl.core.types.Predicate;
+import com.sergey.zhuravlev.auctionserver.core.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.core.service.LotService;
 import com.sergey.zhuravlev.auctionserver.database.builder.LotPredicateBuilder;
 import com.sergey.zhuravlev.auctionserver.database.entity.Lot;
 import com.sergey.zhuravlev.auctionserver.database.repository.LotRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.util.Optional;
 
-
-@Log
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class WatcherExpirationLotsService {
@@ -23,29 +21,29 @@ public class WatcherExpirationLotsService {
     private final LotService lotService;
     private final LotRepository lotRepository;
 
-    private LotsThread thread;
+    private WatcherExpirationLotsThread thread;
 
     @PostConstruct
     private void init(){
         try {
             followImpl(foundNearestLot());
-        } catch (RuntimeException e) {
-            log.info(String.format("Unable to start tracking nearest lot. %s", e));
+        } catch (NotFoundException e) {
+            log.info("Unable to start tracking nearest lot. Nearest lot not exist.");
+        } catch (Exception e) {
+            log.warn("Unable to start tracking nearest lot.", e);
         }
     }
 
     private Lot foundNearestLot() {
-        if (thread.isAlive()) thread.interrupt();
-        Predicate lotPredicate = new LotPredicateBuilder().withNearestExpirationDate().build();
-        Optional<Lot> lotOptional = lotRepository.findOne(lotPredicate);
-        if (!lotOptional.isPresent())
-            throw new RuntimeException("Not found nearest lots");
-        return lotOptional.get();
+        if (thread != null && thread.isAlive()) thread.interrupt();
+        return lotRepository
+                .findAll(new LotPredicateBuilder().withNearestExpirationDate().build()).stream().findFirst()
+                .orElseThrow(() -> new NotFoundException("Not found nearest lots"));
     }
 
     private void followImpl(Lot lot) {
         thread.interrupt();
-        thread = new LotsThread(lot);
+        thread = new WatcherExpirationLotsThread(lot);
         thread.start();
     }
 
@@ -65,22 +63,22 @@ public class WatcherExpirationLotsService {
 
     @Getter
     @RequiredArgsConstructor
-    class LotsThread extends Thread {
+    class WatcherExpirationLotsThread extends Thread {
 
         private final Lot nearestLot;
 
         @Override
         public void run() {
             Long sleepTime = nearestLot.getExpiresAt().getTime() - System.currentTimeMillis();
-            log.info("Thread " + getName() + " started, nearest lot [" + nearestLot.getId() + "] " + nearestLot.getTitle() + ", expires at "
-                    + formatMillisToHoursMinute(sleepTime));
+            log.info("Watcher expiration lots thread {} started, nearest lot {} [{}], expires at {}.",
+                    this.getName(), nearestLot.getId(), nearestLot.getTitle(), formatMillisToHoursMinute(sleepTime));
             try {
                 Thread.sleep(nearestLot.getExpiresAt().getTime() - System.currentTimeMillis());
                 lotService.completeLot(nearestLot);
             } catch (InterruptedException ignored) {
-                log.info("Thread stopped.");
+                log.info("Watcher expiration lots thread stopped.");
             }
-            log.info("Thread destroyed.");
+            log.info("Watcher expiration lots thread destroyed.");
         }
 
         private String formatMillisToHoursMinute(Long millis) {

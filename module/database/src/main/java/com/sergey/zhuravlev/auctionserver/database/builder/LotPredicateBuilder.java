@@ -2,12 +2,11 @@ package com.sergey.zhuravlev.auctionserver.database.builder;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import com.sergey.zhuravlev.auctionserver.database.entity.Account;
 import com.sergey.zhuravlev.auctionserver.database.entity.QBid;
 import com.sergey.zhuravlev.auctionserver.database.entity.QLot;
 import com.sergey.zhuravlev.auctionserver.database.enums.LotStatus;
-
-import java.sql.Date;
 
 
 public class LotPredicateBuilder {
@@ -70,7 +69,7 @@ public class LotPredicateBuilder {
     }
 
     public LotPredicateBuilder withNearestExpirationDate() {
-        builder.and(lotQuery.expiresAt.min().before(new Date(System.currentTimeMillis())));
+        builder.and(lotQuery.expiresAt.before(Expressions.currentTimestamp()));
         return this;
     }
 

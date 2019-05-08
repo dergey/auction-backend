@@ -2,7 +2,6 @@ package com.sergey.zhuravlev.auctionserver.core;
 
 import com.sergey.zhuravlev.auctionserver.core.service.ImageService;
 import com.sergey.zhuravlev.auctionserver.database.entity.Image;
-import lombok.extern.java.Log;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +23,6 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
-@Log
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Scope("test")
@@ -48,7 +46,6 @@ public class TestUploadImages {
         ResponseEntity<Object> response = this.restTemplate.postForEntity("/api/images/", requestEntity, Object.class);
 
         assertEquals(response.getStatusCode(), HttpStatus.CREATED);
-        log.warning("upload to " + response.getHeaders().get(HttpHeaders.LOCATION).get(0));
     }
 
     @Test
