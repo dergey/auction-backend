@@ -24,7 +24,7 @@ public class PageDto<T> {
     @JsonProperty(value = "total_pages")
     private Integer totalPages;
 
-    @JsonProperty(value = "total_pages")
+    @JsonProperty(value = "number_of_elements")
     private Integer numberOfElements;
 
     @JsonProperty(value = "first")
