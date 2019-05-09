@@ -1,14 +1,13 @@
 package com.sergey.zhuravlev.auctionserver.controller;
 
-import com.sergey.zhuravlev.auctionserver.converter.AccountConverter;
 import com.sergey.zhuravlev.auctionserver.core.service.AccountService;
 import com.sergey.zhuravlev.auctionserver.core.service.ImageService;
 import com.sergey.zhuravlev.auctionserver.database.entity.Account;
-import com.sergey.zhuravlev.auctionserver.database.entity.Image;
-import com.sergey.zhuravlev.auctionserver.dto.AccountResponseDto;
+import com.sergey.zhuravlev.auctionserver.dto.UserDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.AuthResponseDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.LoginRequestDto;
 import com.sergey.zhuravlev.auctionserver.dto.auth.SingUpRequestDto;
+import com.sergey.zhuravlev.auctionserver.faucet.UserFaucet;
 import com.sergey.zhuravlev.auctionserver.security.service.TokenProviderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,8 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RequestMapping(value = "/auth")
 public class AuthenticationController {
+
+    private final UserFaucet userFaucet;
 
     private final ImageService imageService;
     private final AccountService accountService;
@@ -47,17 +48,16 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AccountResponseDto registration(@Valid @RequestBody SingUpRequestDto singUpRequestDto) {
-        Image photo = imageService.getImage(singUpRequestDto.getPhoto());
+    public UserDto registration(@Valid @RequestBody SingUpRequestDto singUpRequestDto) {
         Account account = accountService.createLocalAccount(
                 singUpRequestDto.getEmail(),
                 singUpRequestDto.getPassword(),
                 singUpRequestDto.getUsername(),
-                photo,
+                singUpRequestDto.getPhoto() != null ? imageService.getImage(singUpRequestDto.getPhoto()) : null,
                 singUpRequestDto.getFirstname(),
                 singUpRequestDto.getLastname(),
                 singUpRequestDto.getBio());
-        return AccountConverter.getAccountResponseDto(account);
+        return userFaucet.getUserDto(account.getUser());
     }
 
 }

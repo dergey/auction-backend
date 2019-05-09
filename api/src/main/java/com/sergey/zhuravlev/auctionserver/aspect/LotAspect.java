@@ -23,21 +23,30 @@ public class LotAspect {
     @Pointcut("execution(* com.sergey.zhuravlev.auctionserver.core.service.LotService.updateLot(..))")
     private void updateLotPointcut(){}
 
+    @Pointcut("execution(* com.sergey.zhuravlev.auctionserver.core.service.LotService.completeLot(..))")
+    private void completeLotPointcut(){}
+
     @Pointcut("execution(* com.sergey.zhuravlev.auctionserver.core.service.LotService.cancelLot(..))")
     private void cancelLotPointcut(){}
 
     @AfterReturning(pointcut = "createLotPointcut() || updateLotPointcut()", returning = "result")
     private void afterLotsChanged(Object result) {
         Lot lot = (Lot) result;
-        log.info("Trying to start following the lot {}.!", lot);
+        log.debug("Trying to start following the lot {}.!", lot);
         watcherExpirationLotsService.follow(lot);
+    }
+
+    @AfterReturning(pointcut = "completeLotPointcut()")
+    void afterLotComplete() {
+        log.debug("Trying to start following the nearest lot!");
+        watcherExpirationLotsService.followNearestLot();
     }
 
     @AfterReturning(pointcut = "cancelLotPointcut()", returning = "result")
     void afterLotDelete (Object result) {
-        Long id = (Long) result;
-        log.info("Unfollow the lot with {} id!", id);
-        watcherExpirationLotsService.unfollowById(id);
+        Lot lot = (Lot) result;
+        log.debug("Unfollow the lot {}.!", lot);
+        watcherExpirationLotsService.unfollow(lot);
     }
 
 }

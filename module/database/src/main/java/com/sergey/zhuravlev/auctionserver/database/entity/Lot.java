@@ -2,17 +2,16 @@ package com.sergey.zhuravlev.auctionserver.database.entity;
 
 import com.sergey.zhuravlev.auctionserver.database.enums.LotStatus;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Currency;
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -29,6 +28,7 @@ public class Lot {
     @Column(name = "description", length = 250)
     private String description;
 
+    @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Collection<Image> images;
 
@@ -53,6 +53,7 @@ public class Lot {
     @Column(name = "auction_step", nullable = false)
     private Long auctionStep;
 
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "current_bid_id")
     private Bid currentBid;
@@ -61,10 +62,12 @@ public class Lot {
     @Enumerated(EnumType.STRING)
     private LotStatus status;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "owner_account_id", nullable = false)
     private Account owner;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "category_id")
     private Category category;

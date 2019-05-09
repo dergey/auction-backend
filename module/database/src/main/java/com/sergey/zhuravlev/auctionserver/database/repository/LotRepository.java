@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,8 @@ public interface LotRepository extends JpaRepository<Lot, Long>, QuerydslPredica
     Optional<Lot> findById(Long id);
 
     Optional<Lot> findByIdAndOwner(Long id, Account owner);
+
+    Optional<Lot> findFirstByExpiresAtAfterOrderByExpiresAtAsc(Date date);
 
     @Override
     Optional<Lot> findOne(Predicate predicate);

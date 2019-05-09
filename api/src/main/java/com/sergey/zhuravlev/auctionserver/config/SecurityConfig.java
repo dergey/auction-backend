@@ -1,4 +1,4 @@
-package com.sergey.zhuravlev.auctionserver.security.config;
+package com.sergey.zhuravlev.auctionserver.config;
 
 import com.sergey.zhuravlev.auctionserver.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.sergey.zhuravlev.auctionserver.security.RestAuthenticationEntryPoint;
