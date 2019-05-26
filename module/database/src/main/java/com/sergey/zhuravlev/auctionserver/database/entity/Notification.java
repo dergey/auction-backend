@@ -38,7 +38,7 @@ public class Notification {
     @JoinColumn(name = "recipient_account_id", nullable = false)
     private Account recipient;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean read;
+    @Column(name = "is_send", nullable = false)
+    private Boolean send;
 
 }

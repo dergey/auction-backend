@@ -26,8 +26,8 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Notification> getNotificationForAccount(Account account) {
-        return notificationRepository.getAllByRecipient(account);
+    public List<Notification> getNotificationForAccountAfterDate(Account account, Date date) {
+        return notificationRepository.getAllByRecipientAndCreateAtAfter(account, date);
     }
 
     @Transactional

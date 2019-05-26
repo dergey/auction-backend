@@ -21,6 +21,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
+    public User getUserById(Long id) {
+        return userRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id %s not found", id)));
+    }
+
+    @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository
                 .findByPrincipalEmail(email)

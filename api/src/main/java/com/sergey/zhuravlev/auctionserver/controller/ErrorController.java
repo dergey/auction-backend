@@ -27,21 +27,21 @@ public class ErrorController {
 
     @ExceptionHandler(value = BadCredentialsException.class)
     public ResponseEntity<ExceptionDto> badCredentialsHandle(RuntimeException ex, WebRequest request) {
-        log.debug("Bad credentials");
+        log.error("Bad credentials");
         ExceptionDto error = new ExceptionDto(new Date(),  "BadCredentials", request.getDescription(false));
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(value = {EntityNotFoundException.class, NotFoundException.class})
     public ResponseEntity<ExceptionDto> notFoundHandle(RuntimeException ex, WebRequest request) {
-        log.debug("Not found", ex);
+        log.error("Not found", ex);
         ExceptionDto error = new ExceptionDto(new Date(), "EntityNotFound", request.getDescription(false));
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<ExceptionDto> unexpectedSystemErrorHandle(RuntimeException ex, WebRequest request) {
-        log.debug("Unexpected system error", ex);
+        log.error("Unexpected system error", ex);
         ExceptionDto error = new ExceptionDto(new Date(), "UnexpectedSystemError", request.getDescription(false));
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -79,6 +79,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/auth/**", "/oauth2/**").permitAll()
                 .antMatchers("/api/images/**").permitAll()
+                .antMatchers("/api/notification/send/new/to/user").permitAll()
                 .anyRequest()
                     .authenticated()
                 .and()

@@ -19,6 +19,20 @@ public class AccountService {
     private final AccountRepository accountRepository;
 
     @Transactional(readOnly = true)
+    public Account getAccountByUser(User user) {
+        return accountRepository
+                .findAccountByUser(user)
+                .orElseThrow(() -> new NotFoundException("Account not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public Account getAccountByUserEmail(String email) {
+        return accountRepository
+                .findAccountByUserPrincipalEmail(email)
+                .orElseThrow(() -> new NotFoundException("Account not found"));
+    }
+
+    @Transactional(readOnly = true)
     public Account getAccountByUsername(String username) {
         return accountRepository
                 .findAccountByUsername(username)
