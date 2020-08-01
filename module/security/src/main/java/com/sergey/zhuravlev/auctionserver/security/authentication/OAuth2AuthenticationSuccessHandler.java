@@ -1,9 +1,9 @@
 package com.sergey.zhuravlev.auctionserver.security.authentication;
 
-import com.sergey.zhuravlev.auctionserver.core.util.CookieUtils;
 import com.sergey.zhuravlev.auctionserver.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.sergey.zhuravlev.auctionserver.security.config.AppProperties;
 import com.sergey.zhuravlev.auctionserver.security.service.TokenProviderService;
+import com.sergey.zhuravlev.auctionserver.security.util.CookieUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;

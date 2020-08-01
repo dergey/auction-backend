@@ -1,7 +1,7 @@
 package com.sergey.zhuravlev.auctionserver.security;
 
 import com.nimbusds.oauth2.sdk.util.StringUtils;
-import com.sergey.zhuravlev.auctionserver.core.util.CookieUtils;
+import com.sergey.zhuravlev.auctionserver.security.util.CookieUtils;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;

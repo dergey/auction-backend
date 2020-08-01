@@ -1,4 +1,4 @@
-package com.sergey.zhuravlev.auctionserver.core.util;
+package com.sergey.zhuravlev.auctionserver.security.util;
 
 import org.springframework.util.SerializationUtils;
 
