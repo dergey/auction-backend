@@ -1,6 +1,7 @@
 package com.sergey.zhuravlev.auctionserver.faucet;
 
 import com.sergey.zhuravlev.auctionserver.core.exception.NotFoundException;
+import com.sergey.zhuravlev.auctionserver.core.exception.UnauthorizedException;
 import com.sergey.zhuravlev.auctionserver.database.entity.Account;
 import com.sergey.zhuravlev.auctionserver.database.entity.User;
 import com.sergey.zhuravlev.auctionserver.database.repository.AccountRepository;
@@ -24,9 +25,13 @@ public class SecurityFaucet {
     @Transactional(readOnly = true)
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByPrincipalEmail(principal.getEmail());
-        return user.orElseThrow(() -> new NotFoundException("User not found"));
+        if (authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+            Optional<User> user = userRepository.findByPrincipalEmail(principal.getEmail());
+            return user.orElseThrow(() -> new NotFoundException("User not found"));
+        } else {
+            throw new UnauthorizedException("User not login");
+        }
     }
 
     @Transactional(readOnly = true)

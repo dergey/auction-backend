@@ -37,7 +37,7 @@ public class UserService {
     @Transactional
     public LocalUser createLocalUser(String email, String rawPassword) {
         if (userRepository.existsByPrincipalEmail(email)) {
-            throw new BadRequestException("email has created");
+            throw new BadRequestException("EmailAlreadyRegistered");
         }
         Principal principal = new Principal(null, email, null);
         LocalUser localUser = new LocalUser();
@@ -50,7 +50,7 @@ public class UserService {
     @Transactional
     public ForeignUser createForeignUser(String email, AuthProvider provider, String providerId) {
         if (userRepository.existsByPrincipalEmail(email)) {
-            throw new BadRequestException("Email already created");
+            throw new BadRequestException("EmailAlreadyRegistered");
         }
         Principal principal = new Principal(null, email, null);
         ForeignUser foreignUser = new ForeignUser();

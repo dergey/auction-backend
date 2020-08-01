@@ -52,7 +52,7 @@ public class AccountService {
                 .findAccountByUser(user)
                 .orElse(new Account());
         if (!username.equals(account.getUsername()) && accountRepository.existsByUsername(username)) {
-            throw new BadRequestException("Username already in use");
+            throw new BadRequestException("UsernameAlreadyRegistered");
         }
         account.setUser(user);
         account.setUsername(username);

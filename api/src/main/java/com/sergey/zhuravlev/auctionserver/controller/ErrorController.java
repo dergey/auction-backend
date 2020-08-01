@@ -1,5 +1,6 @@
 package com.sergey.zhuravlev.auctionserver.controller;
 
+import com.sergey.zhuravlev.auctionserver.core.exception.BadRequestException;
 import com.sergey.zhuravlev.auctionserver.core.exception.NotFoundException;
 import com.sergey.zhuravlev.auctionserver.dto.ExceptionDto;
 import lombok.extern.log4j.Log4j2;
@@ -27,17 +28,25 @@ public class ErrorController {
 
     @ExceptionHandler(value = BadCredentialsException.class)
     public ResponseEntity<ExceptionDto> badCredentialsHandle(RuntimeException ex, WebRequest request) {
-        log.error("Bad credentials");
+        log.error("Status 401: {}", ex.getMessage());
         ExceptionDto error = new ExceptionDto(new Date(),  "BadCredentials", request.getDescription(false));
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(value = {EntityNotFoundException.class, NotFoundException.class})
     public ResponseEntity<ExceptionDto> notFoundHandle(RuntimeException ex, WebRequest request) {
-        log.error("Not found", ex);
+        log.error("Status 404: {}",ex.getMessage());
         ExceptionDto error = new ExceptionDto(new Date(), "EntityNotFound", request.getDescription(false));
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(value = BadRequestException.class)
+    public ResponseEntity<ExceptionDto> badRequestHandle(RuntimeException ex, WebRequest request) {
+        log.error("Status 400: {}",ex.getMessage());
+        ExceptionDto error = new ExceptionDto(new Date(), ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
 
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<ExceptionDto> unexpectedSystemErrorHandle(RuntimeException ex, WebRequest request) {
