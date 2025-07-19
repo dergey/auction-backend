@@ -35,7 +35,7 @@
         <io.jsonwebtoken.jjwt.version>0.5.1</io.jsonwebtoken.jjwt.version>
         <commons.fileupload.version>1.3.3</commons.fileupload.version>
         <apache.tika.version>1.22</apache.tika.version>
-        <apache.commons.lang3.version>3.8.1</apache.commons.lang3.version>
+        <apache.commons.lang3.version>3.18.0</apache.commons.lang3.version>
         <commons.io.version>2.7</commons.io.version>
         <java.version>11</java.version>
     </properties>
